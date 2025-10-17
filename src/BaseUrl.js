@@ -1,2 +1,2 @@
-// export const BaseUrl = 'https://wsproductspostgre.cloudjiffy.net/kwinlabsadmin';
-export const BaseUrl = 'http://localhost:8082';
+export const BaseUrl = 'https://wsproductspostgre.cloudjiffy.net';
+// export const BaseUrl = 'http://localhost:8082';
