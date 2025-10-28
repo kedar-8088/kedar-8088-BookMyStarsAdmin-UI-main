@@ -5,7 +5,7 @@ import { BaseUrl } from 'BaseUrl';
 export const fetchCategories = async (headers, pageNumber = 0, pageSize = 10) => {
     return await axios({
         method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/category/v1/getAllByPagination?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        url: `${BaseUrl}/bookmystarsadmin/category/v1/list?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         headers: headers
     });
 };
@@ -44,7 +44,7 @@ export const deleteCategory = async (id, headers) => {
     try {
         const res = await axios({
             method: 'delete',
-            url: `${BaseUrl}/bookmystarsadmin/category/v1/delete/${id}`,
+            url: `${BaseUrl}/bookmystarsadmin/category/v1/${id}`,
             headers
         });
 
@@ -72,7 +72,7 @@ export const deleteCategory = async (id, headers) => {
 export const getCategoryById = async (id, headers) => {
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/category/v1/get/${id}`,
+        url: `${BaseUrl}/bookmystarsadmin/category/v1/${id}`,
         headers: headers
     });
 };
@@ -81,7 +81,7 @@ export const updateCategory = async (updatedData, headers) => {
     try {
         const res = await axios({
             method: 'PUT',
-            url: `${BaseUrl}/bookmystarsadmin/category/v1/update`,
+            url: `${BaseUrl}/bookmystarsadmin/category/v1/update/${updatedData.categoryId}`,
             headers: headers,
             data: updatedData
         });
@@ -119,7 +119,7 @@ export const updateCategory = async (updatedData, headers) => {
 export const getAllCategories = async (headers) => {
     return await axios({
         method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/category/v1/getAll`,
+        url: `${BaseUrl}/category/v1/all`,
         headers: headers
     });
 };

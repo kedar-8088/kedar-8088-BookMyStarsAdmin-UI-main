@@ -5,18 +5,28 @@ import { BaseUrl } from 'BaseUrl';
 export const fetchStates = async (headers, pageNumber = 0, pageSize = 10) => {
     return await axios({
         method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/state/v1/getAllByPagination?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        url: `${BaseUrl}/bookmystarsadmin/state/v1/list?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         headers: headers
     });
 };
 
 export const addState = async (data, headers) => {
     try {
+        console.log('Request data:', data);
+        // Ensure the data structure matches the API expectations
+        const requestData = {
+            stateName: data.stateName,
+            stateCode: data.stateCode.toUpperCase(),
+            countryId: parseInt(data.countryId, 10),
+            isActive: Boolean(data.isActive),
+            insertedBy: data.insertedBy
+        };
+        console.log('Formatted request data:', requestData);
         const res = await axios({
             method: 'POST',
             url: `${BaseUrl}/bookmystarsadmin/state/v1/create`,
             headers,
-            data: data
+            data: requestData
         });
 
         // Handle different response structures
@@ -43,8 +53,8 @@ export const addState = async (data, headers) => {
 export const deleteState = async (id, headers) => {
     try {
         const res = await axios({
-            method: 'delete',
-            url: `${BaseUrl}/bookmystarsadmin/state/v1/delete/${id}`,
+            method: 'DELETE',
+            url: `${BaseUrl}/bookmystarsadmin/state/v1/${id}`,
             headers
         });
 
@@ -70,18 +80,28 @@ export const deleteState = async (id, headers) => {
 };
 
 export const getStateById = async (id, headers) => {
-    return await axios({
-        method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/state/v1/get/${id}`,
-        headers: headers
-    });
+    try {
+        console.log('Fetching state details for ID:', id);
+        const res = await axios({
+            method: 'GET',
+            url: `${BaseUrl}/bookmystarsadmin/state/v1/${id}`,
+            headers: headers
+        });
+        console.log('State details response:', res.data);
+        return res;
+    } catch (error) {
+        console.error('Error in getStateById:', error.response || error);
+        throw error;
+    }
 };
+
+
 
 export const updateState = async (updatedData, headers) => {
     try {
         const res = await axios({
             method: 'PUT',
-            url: `${BaseUrl}/bookmystarsadmin/state/v1/update`,
+            url: `${BaseUrl}/bookmystarsadmin/state/v1/update/${updatedData.stateId}`,
             headers: headers,
             data: updatedData
         });
@@ -119,8 +139,8 @@ export const updateState = async (updatedData, headers) => {
 export const getAllStates = async (headers) => {
     return await axios({
         method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/state/v1/getAll`,
-        headers: headers
+        url: `${BaseUrl}/bookmystarsadmin/state/v1/all`,
+        headers
     });
 };
 
@@ -164,5 +184,43 @@ export const getStateCount = async (headers) => {
         url: `${BaseUrl}/bookmystarsadmin/state/v1/count`,
         headers: headers
     });
+};
+
+export const activateState = async (stateId, headers) => {
+    try {
+        const res = await axios({
+            method: 'PUT',
+            url: `${BaseUrl}/bookmystarsadmin/state/v1/${stateId}/activate`,
+            headers
+        });
+        const responseBody = res?.data?.body || res?.data;
+        const message = responseBody?.message || 'State activated successfully';
+        Swal.fire('Success', message, 'success');
+        return res;
+    } catch (error) {
+        console.error('Error activating state:', error);
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to activate state';
+        Swal.fire('Error', errorMessage, 'error');
+        throw error;
+    }
+};
+
+export const deactivateState = async (stateId, headers) => {
+    try {
+        const res = await axios({
+            method: 'PUT',
+            url: `${BaseUrl}/bookmystarsadmin/state/v1/${stateId}/deactivate`,
+            headers
+        });
+        const responseBody = res?.data?.body || res?.data;
+        const message = responseBody?.message || 'State deactivated successfully';
+        Swal.fire('Success', message, 'success');
+        return res;
+    } catch (error) {
+        console.error('Error deactivating state:', error);
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to deactivate state';
+        Swal.fire('Error', errorMessage, 'error');
+        throw error;
+    }
 };
 

@@ -1,13 +1,24 @@
-// https://github.com/vitejs/vite/discussions/3448
-// import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import jsconfigPaths from 'vite-jsconfig-paths';
+import path from 'path';
 
 // ----------------------------------------------------------------------
 
 export default defineConfig({
   plugins: [react(), jsconfigPaths()],
+  resolve: {
+    alias: {
+      'src': path.resolve(__dirname, './src'),
+      'components': path.resolve(__dirname, './src/components'),
+      'views': path.resolve(__dirname, './src/views'),
+      'assets': path.resolve(__dirname, './src/assets'),
+      'utils': path.resolve(__dirname, './src/utils'),
+      'ui-component': path.resolve(__dirname, './src/ui-component'),
+      'store': path.resolve(__dirname, './src/store'),
+      'layout': path.resolve(__dirname, './src/layout'),
+    },
+  },
   // https://github.com/jpuri/react-draft-wysiwyg/issues/1317
   base: '/',
   define: {

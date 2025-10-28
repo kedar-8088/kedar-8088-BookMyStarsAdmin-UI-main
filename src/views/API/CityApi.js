@@ -1,157 +1,385 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { BaseUrl } from 'BaseUrl';
+import { BaseUrl } from '../../BaseUrl';
 
-export const fetchCities = async (headers, pageNumber = 0, pageSize = 10) => {
-    return await axios({
-        method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/city/v1/getAllByPagination?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-        headers: headers
-    });
+const getAuthHeaders = () => {
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    console.log('User data in getAuthHeaders:', user);
+
+    const token = user?.accessToken;
+    const tokenType = user?.tokenType || 'Bearer';
+
+    if (!token) {
+        throw new Error('No authentication token available');
+    }
+
+    // Check if the token already includes 'Bearer'
+    const authToken = token.startsWith('Bearer ') ? token : `${tokenType} ${token}`;
+
+    console.log('Generated auth token:', authToken);
+
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+    };
 };
 
-export const addCity = async (data, headers) => {
+export const fetchCities = async (headers, pageNumber = 0, pageSize = 10) => {
     try {
-        const res = await axios({
-            method: 'POST',
-            url: `${BaseUrl}/bookmystarsadmin/city/v1/create`,
-            headers,
-            data: data
+        const authHeaders = getAuthHeaders();
+        
+        // Ensure pageNumber and pageSize are valid numbers
+        const validPageNumber = Math.max(0, parseInt(pageNumber) || 0);
+        const validPageSize = Math.max(1, parseInt(pageSize) || 10);
+
+        console.log('Fetch Cities Request:', {
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/list`,
+            headers: authHeaders,
+            params: {
+                pageNumber: validPageNumber,
+                pageSize: validPageSize
+            }
         });
 
-        // Handle different response structures
-        const responseBody = res?.data?.body || res?.data;
-        const code = responseBody?.code;
-        const message = responseBody?.message || 'City created successfully';
-        const error = responseBody?.error || 'An error occurred';
+        const response = await axios({
+            method: 'get',
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/list`,
+            headers: authHeaders,
+            params: {
+                pageNumber: validPageNumber,
+                pageSize: validPageSize
+            }
+        });
 
-        if (code === 200) {
-            Swal.fire('Success', message, 'success');
-        } else if (code === 400) {
-            Swal.fire('Error', error, 'error');
-        } else {
-            // Handle other response structures or success without explicit code
-            Swal.fire('Success', message, 'success');
+        // Handle the new API response format
+        if (response.data && response.data.code === 200) {
+            return {
+                data: {
+                    content: response.data.data.cities || [],
+                    totalElements: response.data.data.totalCount || 0,
+                    pageNumber: response.data.data.pageNumber,
+                    pageSize: response.data.data.pageSize,
+                    status: response.data.status,
+                    message: response.data.message
+                }
+            };
         }
+        
+        console.log('Cities response:', response);
+        return response;
     } catch (error) {
-        console.error('Error adding city:', error);
-        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to add city';
-        Swal.fire('Error', errorMessage, 'error');
+        console.error('Fetch cities error details:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            headers: error.response?.headers,
+            config: error.config
+        });
+        throw error;
     }
 };
 
-export const deleteCity = async (id, headers) => {
+export const addCity = async (data) => {
     try {
+        const authHeaders = getAuthHeaders();
+        
+        // Format data to match CityDto structure
+        const formattedData = {
+            cityName: data.cityName,
+            countryId: data.countryId,
+            stateId: data.stateId,
+            isActive: data.isActive,
+            isDelete: false,
+            insertedBy: {
+                userId: data.insertedBy?.userId || 1,
+                userName: data.insertedBy?.userName || 'admin'
+            }
+        };
+
+        console.log('Formatted city data:', formattedData);
+
         const res = await axios({
-            method: 'delete',
-            url: `${BaseUrl}/bookmystarsadmin/city/v1/delete/${id}`,
-            headers
+            method: 'POST',
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/create`,
+            headers: authHeaders,
+            data: formattedData
         });
 
-        // Handle different response structures
-        const responseBody = res?.data?.body || res?.data;
-        const code = responseBody?.code;
-        const message = responseBody?.message || 'City deleted successfully';
-        const error = responseBody?.error || 'An error occurred';
+        // Backend response shape examples:
+        // 1) { code:200, status:'SUCCESS', message:'...', data: { ... } }
+        // 2) { status:'SUCCESS', message:'City created successfully', data: null }
+        const body = res?.data || {};
 
-        if (code === 200) {
-            Swal.fire('Deleted!', message, 'success');
-        } else if (code === 400) {
-            Swal.fire('Error', error, 'error');
-        } else {
-            // Handle other response structures or success without explicit code
-            Swal.fire('Deleted!', message, 'success');
+        // Prefer checking status === 'SUCCESS'
+        if (body.status === 'SUCCESS' || body.code === 200) {
+            const successMessage = body.message || 'City created successfully';
+            Swal.fire('Success', successMessage, 'success');
+            return body; // return parsed body for caller to use
         }
+
+        // Fallback: handle error-like responses
+        const errMsg = body.message || body.error || 'Failed to create city';
+        Swal.fire('Error', errMsg, 'error');
+        // throw so caller can react if needed
+        const error = new Error(errMsg);
+        error.response = res;
+        throw error;
+    } catch (error) {
+        console.error('Error adding city:', error);
+
+        // Log the full error details for debugging (include nested server response)
+        const resp = error.response;
+        const serverData = resp?.data;
+        console.log('Full error details:', {
+            status: resp?.status,
+            headers: resp?.headers,
+            data: serverData,
+            message: error.message,
+            config: error.config
+        });
+        try {
+            console.log('Server response body (string):', JSON.stringify(serverData));
+        } catch (e) {
+            console.log('Server response body (string) could not be stringified');
+        }
+
+        // Prefer server-provided message fields, fall back to stringified body
+        let errorMessage = 'Failed to add city';
+        if (serverData) {
+            if (typeof serverData === 'string') {
+                errorMessage = serverData;
+            } else if (serverData.message) {
+                errorMessage = serverData.message;
+            } else if (serverData.error) {
+                errorMessage = serverData.error;
+            } else if (serverData.body && (serverData.body.message || serverData.body.error)) {
+                errorMessage = serverData.body.message || serverData.body.error;
+            } else {
+                try {
+                    errorMessage = JSON.stringify(serverData);
+                } catch (_e) {
+                    errorMessage = String(serverData);
+                }
+            }
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        // Handle specific error cases
+        if (resp?.status === 400) {
+            if (errorMessage.toLowerCase().includes('constraint') || errorMessage.toLowerCase().includes('validation')) {
+                errorMessage = 'Invalid data: Please check all required fields';
+            }
+        }
+
+        Swal.fire({
+            title: 'Error',
+            text: errorMessage,
+            icon: 'error'
+        });
+        throw error;
+    }
+};
+
+export const deleteCity = async (cityId) => {
+    try {
+        const authHeaders = getAuthHeaders();
+        const res = await axios({
+            method: 'DELETE',
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/${cityId}`,
+            headers: authHeaders
+        });
+
+        const responseBody = res?.data?.body || res?.data;
+        const message = responseBody?.message || 'City deleted successfully';
+        
+        Swal.fire('Success', message, 'success');
+        return true;
     } catch (error) {
         console.error('Error deleting city:', error);
         const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete city';
         Swal.fire('Error', errorMessage, 'error');
+        throw error;
     }
 };
 
-export const getCityById = async (id, headers) => {
+export const getCityById = async (cityId) => {
+    const authHeaders = getAuthHeaders();
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/city/v1/get/${id}`,
-        headers: headers
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/${cityId}`,
+        headers: authHeaders
     });
 };
 
-export const updateCity = async (updatedData, headers) => {
+export const updateCity = async (cityId, updatedData) => {
     try {
+        const authHeaders = getAuthHeaders();
+        // Format data to match CityDto structure
+        const formattedData = {
+            cityId: cityId,
+            cityName: updatedData.cityName,
+            countryId: updatedData.countryId,
+            stateId: updatedData.stateId,
+            isActive: updatedData.isActive,
+            isDelete: updatedData.isDelete || false,
+            updatedBy: {
+                userId: updatedData.updatedBy?.userId || 1,
+                userName: updatedData.updatedBy?.userName || 'admin'
+            }
+        };
+
         const res = await axios({
             method: 'PUT',
-            url: `${BaseUrl}/bookmystarsadmin/city/v1/update`,
-            headers: headers,
-            data: updatedData
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/update/${cityId}`,
+            headers: authHeaders,
+            data: formattedData
         });
 
-        // Handle different response structures
         const responseBody = res?.data?.body || res?.data;
-        const code = responseBody?.code;
         const message = responseBody?.message || 'City updated successfully';
-        const error = responseBody?.error || 'An error occurred';
-
-        if (code === 200) {
-            Swal.fire('Success', message, 'success');
-        } else if (code === 400) {
-            Swal.fire('Error', error, 'error');
-        } else {
-            // Handle other response structures or success without explicit code
-            Swal.fire('Success', message, 'success');
-        }
+        Swal.fire('Success', message, 'success');
+        return responseBody?.data;
     } catch (error) {
         console.error('Error updating city:', error);
-        
-        let errorMessage = 'Failed to update city';
-        if (error?.response?.data?.error) {
-            errorMessage = error.response.data.error;
-        } else if (error?.response?.data?.message) {
-            errorMessage = error.response.data.message;
-        } else if (error?.message) {
-            errorMessage = error.message;
-        }
-        
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update city';
         Swal.fire('Error', errorMessage, 'error');
+        throw error;
     }
 };
 
-export const getAllCities = async (headers) => {
+export const getAllCities = async () => {
+    const authHeaders = getAuthHeaders();
     return await axios({
-        method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/city/v1/getAll`,
-        headers: headers
+        method: 'GET',
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/all`,
+        headers: authHeaders
     });
 };
 
-export const getCityByName = async (cityName, headers) => {
+export const getActiveCities = async () => {
+    const authHeaders = getAuthHeaders();
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/city/v1/getByName/${cityName}`,
-        headers: headers
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/active`,
+        headers: authHeaders
     });
 };
 
-export const getCityByCode = async (cityCode, headers) => {
+export const getCityByName = async (cityName) => {
+    const authHeaders = getAuthHeaders();
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/city/v1/getByCode/${cityCode}`,
-        headers: headers
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/name/${cityName}`,
+        headers: authHeaders
     });
 };
 
-export const searchCityByName = async (cityName, headers) => {
+export const getCitiesByState = async (stateId) => {
+    const authHeaders = getAuthHeaders();
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/city/v1/search?cityName=${cityName}`,
-        headers: headers
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/state/${stateId}`,
+        headers: authHeaders
     });
 };
 
-export const getCityCount = async (headers) => {
+export const getActiveCitiesByState = async (stateId) => {
+    const authHeaders = getAuthHeaders();
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/city/v1/count`,
-        headers: headers
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/state/${stateId}/active`,
+        headers: authHeaders
     });
+};
+
+export const getCitiesByCountry = async (countryId) => {
+    const authHeaders = getAuthHeaders();
+    return await axios({
+        method: 'GET',
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/country/${countryId}`,
+        headers: authHeaders
+    });
+};
+
+export const getActiveCitiesByCountry = async (countryId) => {
+    const authHeaders = getAuthHeaders();
+    return await axios({
+        method: 'GET',
+        url: `${BaseUrl}/bookmystarsadmin/city/v1/country/${countryId}/active`,
+        headers: authHeaders
+    });
+};
+
+export const activateCity = async (cityId) => {
+    try {
+        const authHeaders = getAuthHeaders();
+        const res = await axios({
+            method: 'PUT',
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/${cityId}/activate`,
+            headers: authHeaders
+        });
+        
+        const responseBody = res?.data?.body || res?.data;
+        const message = responseBody?.message || 'City activated successfully';
+        Swal.fire('Success', message, 'success');
+        return true;
+    } catch (error) {
+        console.error('Error activating city:', error);
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to activate city';
+        Swal.fire('Error', errorMessage, 'error');
+        throw error;
+    }
+};
+
+export const deactivateCity = async (cityId) => {
+    try {
+        const authHeaders = getAuthHeaders();
+        const res = await axios({
+            method: 'PUT',
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/${cityId}/deactivate`,
+            headers: authHeaders
+        });
+        
+        const responseBody = res?.data?.body || res?.data;
+        const message = responseBody?.message || 'City deactivated successfully';
+        Swal.fire('Success', message, 'success');
+        return true;
+    } catch (error) {
+        console.error('Error deactivating city:', error);
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to deactivate city';
+        Swal.fire('Error', errorMessage, 'error');
+        throw error;
+    }
+};
+
+// Since there's no direct count endpoint in the backend controller,
+// we'll calculate it from the list endpoint
+export const getCityCount = async () => {
+    try {
+        const authHeaders = getAuthHeaders();
+        // Get all cities to count them
+        const response = await axios({
+            method: 'GET',
+            url: `${BaseUrl}/bookmystarsadmin/city/v1/all`,
+            headers: authHeaders
+        });
+
+        const responseBody = response?.data?.body || response?.data;
+        const cities = responseBody?.data || [];
+        
+        // Return the count
+        return {
+            data: {
+                data: Array.isArray(cities) ? cities.length : 0
+            }
+        };
+    } catch (error) {
+        console.error('Get city count error details:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            headers: error.response?.headers,
+            config: error.config
+        });
+        throw error;
+    }
 };

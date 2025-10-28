@@ -56,48 +56,7 @@ const utilities = {
             type: 'collapse',
             icon: icons.IconWindmill,
             children: [
-                {
-                    id: 'eye_color',
-                    title: 'Eye Color',
-                    type: 'item',
-                    url: '/dashboard/eye-color',
-                    breadcrumbs: false
-                },
-                {
-                    id: 'hair_color',
-                    title: 'Hair Color',
-                    type: 'item',
-                    url: '/dashboard/hair-color',
-                    breadcrumbs: false
-                },
-                {
-                    id: 'highest_qualification',
-                    title: 'Highest Qualification',
-                    type: 'item',
-                    url: '/dashboard/highest-qualification',
-                    breadcrumbs: false
-                },
-                {
-                    id: 'marital_status',
-                    title: 'Marital Status',
-                    type: 'item',
-                    url: '/dashboard/marital-status',
-                    breadcrumbs: false
-                },
-                {
-                    id: 'shoe_size',
-                    title: 'Shoe Size',
-                    type: 'item',
-                    url: '/dashboard/shoe-size',
-                    breadcrumbs: false
-                },
-                {
-                    id: 'skin_color',
-                    title: 'Skin Color',
-                    type: 'item',
-                    url: '/dashboard/skin-color',
-                    breadcrumbs: false
-                }
+               
             ]
         },
 

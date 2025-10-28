@@ -12,7 +12,7 @@ import LogoImg from '../assets/images/BookMyStarsLogo.png';
 
 // ==============================|| LOGO IMAGE ||============================== //
 
-const Logo = ({ width = 70, height = 90 }) => {
+const Logo = ({ width = 90, height = 60 }) => {
     const finalHeight = typeof height === 'number' ? height : width;
 
     return <img src={LogoImg} alt="BookMyStars" width={width} height={finalHeight} />;

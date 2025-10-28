@@ -3,15 +3,27 @@ import Swal from 'sweetalert2';
 import { BaseUrl } from 'BaseUrl';
 
 export const fetchCommunicationLanguages = async (headers, pageNumber = 0, pageSize = 10) => {
-    return await axios({
+    const res = await axios({
         method: 'get',
         url: `${BaseUrl}/bookmystarsadmin/language/v1/getAllByPagination?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         headers: headers
     });
+
+    // Normalize response to a consistent shape for callers
+    // Controller returns: { code, status, message, error, data: { content: [...], totalElements, ... } }
+    const body = res?.data ?? {};
+    const pageNode = body?.data ?? {};
+    const items = Array.isArray(pageNode?.content) ? pageNode.content : Array.isArray(body) ? body : [];
+    const total = pageNode?.totalElements ?? pageNode?.totalCount ?? (Array.isArray(items) ? items.length : 0);
+
+    return { items, total, raw: res };
 };
 
 export const addCommunicationLanguage = async (data, headers) => {
     try {
+        // Log payload for debugging (inspect server-side validation issues)
+        console.log('addCommunicationLanguage - payload:', data);
+
         const res = await axios({
             method: 'POST',
             url: `${BaseUrl}/bookmystarsadmin/language/v1/create`,
@@ -19,24 +31,38 @@ export const addCommunicationLanguage = async (data, headers) => {
             data: data
         });
 
-        // Handle different response structures
+        // Normalize response and show feedback
         const responseBody = res?.data?.body || res?.data;
-        const code = responseBody?.code;
-        const message = responseBody?.message || 'Language created successfully';
-        const error = responseBody?.error || 'An error occurred';
+        const code = responseBody?.code ?? res?.status;
+        const message = responseBody?.message || responseBody?.data?.message || 'Language created successfully';
 
-        if (code === 200) {
+        if (code === 200 || code === 201 || res?.status === 200 || res?.status === 201) {
             Swal.fire('Success', message, 'success');
-        } else if (code === 400) {
-            Swal.fire('Error', error, 'error');
         } else {
-            // Handle other response structures or success without explicit code
-            Swal.fire('Success', message, 'success');
+            const errorMsg = responseBody?.error || responseBody?.message || 'An error occurred';
+            Swal.fire('Error', errorMsg, 'error');
         }
+
+        return res;
     } catch (error) {
         console.error('Error adding language:', error);
-        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to add language';
+
+        // Try to extract meaningful server error information
+        const serverData = error?.response?.data;
+        // Log full server response to help debugging
+        console.error('Server response (error.response):', error?.response);
+        console.error('Server response data:', serverData);
+
+        let errorMessage = error?.message || 'Failed to add language';
+
+        // Support nested shapes used by ClientResponseBean: { code, status, message, error, data }
+        if (serverData) {
+            errorMessage = serverData?.message || serverData?.error || serverData?.body?.message || serverData?.body?.error || JSON.stringify(serverData) || errorMessage;
+        }
+
         Swal.fire('Error', errorMessage, 'error');
+        // Re-throw so callers can react if needed
+        throw error;
     }
 };
 

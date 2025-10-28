@@ -9,11 +9,22 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
-import MainCard from 'ui-component/cards/MainCard';
-import { gridSpacing } from 'store/constant';
-import { fetchCities, addCity, deleteCity, getCityById, updateCity, getCityCount } from 'views/API/CityApi';
-import { getAllStates } from 'views/API/StateApi';
-import { getAllCountries } from 'views/API/CountryApi';
+import MainCard from '../../../ui-component/cards/MainCard';
+import { gridSpacing } from '../../../store/constant';
+import { 
+    fetchCities, 
+    addCity, 
+    deleteCity, 
+    getCityById, 
+    updateCity,
+    getCityCount,
+    activateCity,
+    deactivateCity,
+    getAllCities,
+    getActiveCities
+} from '../../../views/API/CityApi';
+import { getAllStates } from '../../../views/API/StateApi';
+import { getAllCountries } from '../../../views/API/CountryApi';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import {
@@ -114,7 +125,7 @@ const City = () => {
 
     const fetchCityCount = async () => {
         try {
-            const res = await getCityCount(headers);
+            const res = await getCityCount();
             const responseBody = res?.data?.body ?? res?.data;
             const count = responseBody?.data || responseBody || 0;
             
@@ -165,7 +176,7 @@ const City = () => {
                 return;
             }
 
-            const res = await fetchCities(headers, page, rowsPerPage);
+            const res = await fetchCities(null, page, rowsPerPage);
 
             // Support both possible response shapes: { body: { data } } or { data }
             const responseBody = res?.data?.body ?? res?.data;
@@ -277,37 +288,35 @@ const City = () => {
                         return;
                     }
                     const updatedData = {
-                        cityId: cityId,
+                        cityId: parseInt(cityId),
                         cityName: userdata.cityName?.trim() || '',
-                        countryId: userdata.countryId,
-                        stateId: userdata.stateId,
+                        countryId: parseInt(userdata.countryId),
+                        stateId: parseInt(userdata.stateId),
                         isActive: Boolean(userdata.isActive),
-                        updatedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
+                        isDelete: false,
+                        updatedBy: {
+                            userId: user?.userId ? parseInt(user.userId) : 1,
+                            userName: user?.userName || user?.username || 'admin'
                         }
                     };
+                    console.log('Update city data:', updatedData);
                     console.log('Sending update data:', updatedData);
-                    await updateCity(updatedData, headers);
+                    await updateCity(cityId, updatedData);
                 } else {
                     const newData = {
                         cityName: userdata.cityName?.trim() || '',
-                        countryId: userdata.countryId,
-                        stateId: userdata.stateId,
+                        countryId: parseInt(userdata.countryId),
+                        stateId: parseInt(userdata.stateId),
                         isActive: Boolean(userdata.isActive),
-                        insertedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
+                        isDelete: false,
+                        insertedBy: {
+                            userId: user?.userId ? parseInt(user.userId) : 1,
+                            userName: user?.userName || user?.username || 'admin'
                         }
                     };
+                    console.log('Add city data:', newData);
                     console.log('Sending add data:', newData);
-                    await addCity(newData, headers);
+                    await addCity(newData);
                 }
                 setUserData({ cityName: '', countryId: '', stateId: '', isActive: true });
                 setErrors({});
@@ -315,7 +324,11 @@ const City = () => {
                 setOpen(false);
             } catch (error) {
                 console.error('Error saving city:', error);
-                Swal.fire('Error', 'Failed to save city. Please try again.', 'error');
+                // Prefer server-provided message when available
+                const serverMsg = error?.response?.data?.message || error?.response?.data?.error ||
+                    (error?.response?.data ? JSON.stringify(error.response.data) : null);
+                const errMsg = serverMsg || error?.message || 'Failed to save city. Please try again.';
+                Swal.fire('Error', errMsg, 'error');
             }
         }
     };
@@ -403,7 +416,7 @@ const City = () => {
         setEditMode(true);
         setOpen(true);
         try {
-            const res = await getCityById(cityId, headers);
+            const res = await getCityById(cityId);
             // Support both possible response shapes
             const responseBody = res?.data?.body ?? res?.data;
             const det = responseBody?.data || responseBody;
@@ -445,7 +458,7 @@ const City = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await deleteCity(cityId, headers);
+                    await deleteCity(cityId);
                     setRefreshTrigger((prev) => !prev);
                     Swal.fire({
                         title: 'Deleted!',

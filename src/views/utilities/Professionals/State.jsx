@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchStates, addState, deleteState, getStateById, updateState, searchStateByName, getStateCount } from 'views/API/StateApi';
+import { fetchStates, addState, deleteState, getStateById, updateState, searchStateByName, getStateCount, activateState, deactivateState } from 'views/API/StateApi';
 import { getAllCountries } from 'views/API/CountryApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect } from 'react';
@@ -124,6 +124,7 @@ const State = () => {
                     console.log('Available countries for lookup:', countries);
                     
                     // Get countryId from state data
+
                     const stateCountryId = p.countryId;
                     console.log(`State ${p.stateName} - stateCountryId: ${stateCountryId}`);
                     
@@ -252,11 +253,11 @@ const State = () => {
                 } else {
                     const newData = {
                         stateName: userdata.stateName?.trim() || '',
-                        stateCode: userdata.stateCode?.trim() || '',
-                        countryId: userdata.countryId,
+                        stateCode: userdata.stateCode?.trim().toUpperCase() || '',
+                        countryId: parseInt(userdata.countryId, 10),
                         isActive: Boolean(userdata.isActive),
                         insertedBy: user?.userId ? {
-                            userId: user.userId,
+                            userId: parseInt(user.userId, 10),
                             userName: user.userName || user.username || 'admin'
                         } : {
                             userId: 1,
@@ -347,9 +348,12 @@ const State = () => {
         setEditMode(true);
         setOpen(true);
         try {
+            console.log('Fetching state details for editing, ID:', stateId);
             const res = await getStateById(stateId, headers);
+            console.log('Edit state response:', res);
             // Support both possible response shapes
             const responseBody = res?.data?.body ?? res?.data;
+            console.log('Response body:', responseBody);
             const det = responseBody?.data || responseBody;
 
             if (det && det.stateId) {
@@ -370,6 +374,24 @@ const State = () => {
             console.error('Error fetching state details:', error);
             Swal.fire('Error', 'Failed to load state details. Please try again.', 'error');
             setOpen(false);
+        }
+    };
+
+    const handleActivate = async (stateId) => {
+        try {
+            await activateState(stateId, headers);
+            setRefreshTrigger(prev => !prev);
+        } catch (error) {
+            console.error('Error activating state:', error);
+        }
+    };
+
+    const handleDeactivate = async (stateId) => {
+        try {
+            await deactivateState(stateId, headers);
+            setRefreshTrigger(prev => !prev);
+        } catch (error) {
+            console.error('Error deactivating state:', error);
         }
     };
 
@@ -403,8 +425,7 @@ const State = () => {
             }
         });
     };
-
-
+    
     const renderCardView = () => (
         <Grid container spacing={3}>
             {states.length === 0 ? (
@@ -586,6 +607,14 @@ const State = () => {
                                                     <IconButton onClick={() => handleDelete(row.stateId)} color="error">
                                                         <DeleteForever />
                                                     </IconButton>
+                                                    <IconButton 
+                                                        onClick={() => row.isActive === 'Active' ? 
+                                                            handleDeactivate(row.stateId) : 
+                                                            handleActivate(row.stateId)}
+                                                        color={row.isActive === 'Active' ? 'warning' : 'success'}
+                                                    >
+                                                        {row.isActive === 'Active' ? <Cancel /> : <CheckCircle />}
+                                                    </IconButton>
                                                 </>
                                             ) : column.id === 'isActive' ? (
                                                 <Box
@@ -751,5 +780,4 @@ const State = () => {
         </Box>
     );
 };
-
 export default State;

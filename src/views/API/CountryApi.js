@@ -3,11 +3,11 @@ import Swal from 'sweetalert2';
 import { BaseUrl } from 'BaseUrl';
 
 export const fetchCountries = async (headers, pageNumber = 0, pageSize = 10) => {
-    return await axios({
-        method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/country/v1/getAllByPagination?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-        headers: headers
-    });
+  return await axios({
+    method: 'get',
+    url: `${BaseUrl}/bookmystarsadmin/country/v1/list?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+    headers: headers
+  });
 };
 
 export const addCountry = async (data, headers) => {
@@ -119,7 +119,7 @@ export const updateCountry = async (updatedData, headers) => {
 export const getAllCountries = async (headers) => {
     return await axios({
         method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/country/v1/getAll`,
+        url: `${BaseUrl}/bookmystarsadmin/country/v1/all`,
         headers: headers
     });
 };

@@ -121,22 +121,27 @@ const CommunicationLanguage = () => {
                 }
             }
 
-            // Debug API response
+            // If API returned normalized shape { items, total, raw }, prefer that
+            if (res && res.items !== undefined) {
+                console.log('Language API normalized response received:', { items: res.items, total: res.total });
+            }
+
+            // Debug API response (legacy/raw)
             console.log('Language API Response Debug:', {
-                status: res?.status,
-                statusText: res?.statusText,
-                fullResponse: res,
-                data: res?.data,
-                body: res?.data?.body,
-                responseBody: res?.data?.body ?? res?.data,
+                status: res?.raw?.status ?? res?.status,
+                statusText: res?.raw?.statusText ?? res?.statusText,
+                fullResponse: res?.raw ?? res,
+                data: res?.raw?.data ?? res?.data,
+                body: (res?.raw?.data ?? res?.data)?.body,
+                responseBody: (res?.raw?.data ?? res?.data)?.body ?? (res?.raw?.data ?? res?.data),
                 page,
                 rowsPerPage,
-                url: res?.config?.url
+                url: res?.raw?.config?.url ?? res?.config?.url
             });
 
-            // Support both possible response shapes: { body: { data } } or { data }
-            const responseBody = res?.data?.body ?? res?.data;
-            const dataNode = responseBody?.data;
+            // Support both possible response shapes: normalized {items,total} OR axios response { data: { data: ... } }
+            const responseBody = (res && res.items !== undefined) ? { data: { content: res.items, totalElements: res.total } } : (res?.raw?.data?.body ?? res?.data?.body ?? res?.raw?.data ?? res?.data);
+            const dataNode = (res && res.items !== undefined) ? responseBody.data : responseBody?.data;
             
             // Handle different response structures
             let fetchedData = [];
@@ -304,14 +309,7 @@ const CommunicationLanguage = () => {
                         languageId: languageId,
                         languageName: userdata.languageName?.trim() || '',
                         languageCode: userdata.languageCode?.trim() || '',
-                        isActive: Boolean(userdata.isActive),
-                        updatedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        isActive: Boolean(userdata.isActive)
                     };
                     console.log('Update Data Debug:', {
                         updatedData,
@@ -324,14 +322,7 @@ const CommunicationLanguage = () => {
                     const newData = {
                         languageName: userdata.languageName?.trim() || '',
                         languageCode: userdata.languageCode?.trim() || '',
-                        isActive: Boolean(userdata.isActive),
-                        insertedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        isActive: Boolean(userdata.isActive)
                     };
                     console.log('Add Data Debug:', {
                         newData,
@@ -344,7 +335,13 @@ const CommunicationLanguage = () => {
                 setOpen(false);
             } catch (error) {
                 console.error('Error saving communication language:', error);
-                Swal.fire('Error', 'Failed to save language. Please try again.', 'error');
+                // Try to show server-provided validation message if present
+                const serverData = error?.response?.data;
+                let serverMessage = 'Failed to save language. Please try again.';
+                if (serverData) {
+                    serverMessage = serverData?.message || serverData?.error || serverData?.body?.message || serverData?.body?.error || serverMessage;
+                }
+                Swal.fire('Error', serverMessage, 'error');
             }
         }
     };

@@ -35,7 +35,7 @@ const ProfessionalManagement = () => {
         <Box sx={{ mt: 4 }}>
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    <MainCard title="Professional Management Dashboard">
+                    <MainCard title="Professional  Dashboard">
                         <Typography variant="body1" color="textSecondary" sx={{ mb: 3 }}>
                             Manage all professional accounts, verifications, and settings from this centralized dashboard.
                         </Typography>
