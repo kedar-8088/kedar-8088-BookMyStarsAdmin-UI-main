@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchCategories, addCategory, deleteCategory, getCategoryById, updateCategory, getCategoryCount } from 'views/API/CategoryApi';
+import { fetchCategories, addCategory, deleteCategory, getCategoryById, updateCategory } from 'views/API/CategoryApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
@@ -55,6 +55,7 @@ const Category = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [categories, setCategories] = useState([]);
+    const [rawCategoriesData, setRawCategoriesData] = useState([]); // Store original API data
     const [open, setOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'card'
@@ -67,7 +68,6 @@ const Category = () => {
     const [refreshTrigger, setRefreshTrigger] = useState(false);
     const [categoryId, setCategoryId] = useState(null);
     const [totalCount, setTotalCount] = useState(0);
-    const [categoryCount, setCategoryCount] = useState(0);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -101,9 +101,16 @@ const Category = () => {
 
             const res = await fetchCategories(headers, page, rowsPerPage);
 
+            console.log('=== CATEGORY FETCH DEBUG ===');
+            console.log('Full API response:', res);
+            console.log('Response data:', res.data);
+
             // Support both possible response shapes: { body: { data } } or { data }
             const responseBody = res?.data?.body ?? res?.data;
             const dataNode = responseBody?.data;
+            
+            console.log('Response body:', responseBody);
+            console.log('Data node:', dataNode);
             
             // Handle different response structures
             let fetchedData = [];
@@ -129,24 +136,41 @@ const Category = () => {
             }
 
             if (fetchedData && Array.isArray(fetchedData)) {
+                console.log('Fetched data:', fetchedData);
+                console.log('Total count from API:', totalCountFromApi);
+                
+                // Store raw data for editing
+                setRawCategoriesData(fetchedData);
+                
                 const tableData = fetchedData.map((p) => {
                     // Handle isActive field similar to Country.jsx and State.jsx
-                    const isActiveValue = p.isActive !== undefined ? p.isActive : p.active !== undefined ? p.active : true;
+                    const isActiveValue = p.isActive !== null && p.isActive !== undefined ? p.isActive : p.active !== null && p.active !== undefined ? p.active : true;
                     console.log(`Category ${p.categoryName} - isActive field: ${p.isActive}, active field: ${p.active}, final value: ${isActiveValue}`);
                     
-                    return {
+                    const processedCategory = {
                         categoryId: p.categoryId,
                         categoryName: p.categoryName || 'N/A',
                         categoryDescription: p.categoryDescription || 'N/A',
-                        isActive: isActiveValue ? 'Active' : 'Inactive',
+                        isActive: Boolean(isActiveValue), // Keep as boolean for consistency
                         insertedDate: p.insertedDate ? moment(p.insertedDate).format('L') : 'N/A',
                         updatedDate: p.updatedDate ? moment(p.updatedDate).format('L') : 'N/A'
                     };
+                    
+                    console.log(`Category ${p.categoryName} dates:`, {
+                        originalInsertedDate: p.insertedDate,
+                        originalUpdatedDate: p.updatedDate,
+                        formattedInsertedDate: processedCategory.insertedDate,
+                        formattedUpdatedDate: processedCategory.updatedDate
+                    });
+                    
+                    return processedCategory;
                 });
 
+                console.log('Processed table data:', tableData);
                 setCategories(tableData);
                 setTotalCount(typeof totalCountFromApi === 'number' ? totalCountFromApi : 0);
             } else {
+                console.warn('No valid data found in response');
                 setCategories([]);
                 setTotalCount(0);
             }
@@ -158,25 +182,8 @@ const Category = () => {
         }
     };
 
-    const fetchCategoryCount = async () => {
-        try {
-            const res = await getCategoryCount(headers);
-            const responseBody = res?.data?.body ?? res?.data;
-            const count = responseBody?.data || responseBody || 0;
-            
-            // Ensure count is a number
-            const numericCount = typeof count === 'number' ? count : 
-                                typeof count === 'string' ? parseInt(count, 10) || 0 : 0;
-            setCategoryCount(numericCount);
-        } catch (error) {
-            console.error('Error fetching category count:', error);
-            setCategoryCount(0);
-        }
-    };
-
     useEffect(() => {
         FetchData();
-        fetchCategoryCount();
     }, [refreshTrigger, page, rowsPerPage]);
 
     // Prevent aria-hidden warning by ensuring no background element keeps focus when dialog opens
@@ -202,6 +209,7 @@ const Category = () => {
                         categoryName: userdata.categoryName?.trim() || '',
                         categoryDescription: userdata.categoryDescription?.trim() || '',
                         isActive: Boolean(userdata.isActive),
+                        isDelete: false, // Add required is_delete field
                         updatedBy: user?.userId ? {
                             userId: user.userId,
                             userName: user.userName || user.username || 'admin'
@@ -216,12 +224,21 @@ const Category = () => {
                         editMode,
                         userdata
                     });
-                    await updateCategory(updatedData, headers);
+                    const updateResult = await updateCategory(updatedData, headers);
+                    
+                    if (updateResult.success) {
+                        console.log('Category updated successfully:', updateResult.message);
+                        console.log('Update result data:', updateResult.data);
+                        Swal.fire('Success', updateResult.message, 'success');
+                    } else {
+                        throw new Error(updateResult.message || 'Update operation failed');
+                    }
                 } else {
                     const newData = {
                         categoryName: userdata.categoryName?.trim() || '',
                         categoryDescription: userdata.categoryDescription?.trim() || '',
                         isActive: Boolean(userdata.isActive),
+                        isDelete: false, // Add required is_delete field
                         insertedBy: user?.userId ? {
                             userId: user.userId,
                             userName: user.userName || user.username || 'admin'
@@ -234,9 +251,17 @@ const Category = () => {
                         newData,
                         userdata
                     });
-                    await addCategory(newData, headers);
+                    const addResult = await addCategory(newData, headers);
+                    
+                    if (addResult.success) {
+                        console.log('Category added successfully:', addResult.message);
+                        Swal.fire('Success', addResult.message, 'success');
+                    } else {
+                        throw new Error(addResult.message || 'Add operation failed');
+                    }
                 }
                 setUserData({ categoryName: '', categoryDescription: '', isActive: true });
+                console.log('Triggering data refresh after update...');
                 setRefreshTrigger((prev) => !prev);
                 setOpen(false);
             } catch (error) {
@@ -308,7 +333,7 @@ const Category = () => {
 
             if (det && det.categoryId) {
                 console.log('Category details for edit:', det);
-                const isActiveValue = det.isActive !== undefined ? det.isActive : det.active !== undefined ? det.active : true;
+                const isActiveValue = det.isActive !== null && det.isActive !== undefined ? det.isActive : det.active !== null && det.active !== undefined ? det.active : true;
                 setCategoryId(det.categoryId);
                 setUserData({
                     categoryName: det.categoryName || '',
@@ -338,20 +363,27 @@ const Category = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await deleteCategory(categoryId, headers);
-                    setRefreshTrigger((prev) => !prev);
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: 'Category has been deleted.',
-                        icon: 'success'
-                    });
+                    console.log('Deleting category with ID:', categoryId);
+                    const deleteResult = await deleteCategory(categoryId, headers);
+                    
+                    if (deleteResult.success) {
+                        console.log('Category deleted successfully:', deleteResult.message);
+                        setRefreshTrigger((prev) => !prev);
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: deleteResult.message || 'Category has been deleted successfully.',
+                            icon: 'success'
+                        });
+                    } else {
+                        throw new Error(deleteResult.message || 'Delete operation failed');
+                    }
                 } catch (error) {
+                    console.error('Error deleting category:', error);
                     Swal.fire({
                         title: 'Error!',
-                        text: 'There was a problem deleting the category.',
+                        text: error.message || 'There was a problem deleting the category.',
                         icon: 'error'
                     });
-                    console.error('Error deleting category:', error);
                 }
             }
         });
@@ -419,11 +451,11 @@ const Category = () => {
                                             {category.categoryName}
                                         </Typography>
                                         <Chip
-                                            label={category.isActive}
+                                            label={category.isActive ? 'Active' : 'Inactive'}
                                             size="small"
                                             sx={{
                                                 bgcolor:
-                                                    category.isActive === 'Active' ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)',
+                                                    category.isActive ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)',
                                                 color: 'white',
                                                 fontWeight: 'bold'
                                             }}
@@ -530,7 +562,7 @@ const Category = () => {
                                             ) : column.id === 'isActive' ? (
                                                 <Box
                                                     sx={{
-                                                        backgroundColor: row[column.id] === 'Active' ? '#4caf50' : '#f44336',
+                                                        backgroundColor: row[column.id] ? '#4caf50' : '#f44336',
                                                         color: 'white',
                                                         padding: '4px 8px',
                                                         borderRadius: '4px',
@@ -538,7 +570,7 @@ const Category = () => {
                                                         fontWeight: 'bold'
                                                     }}
                                                 >
-                                                    {row[column.id]}
+                                                    {row[column.id] ? 'Active' : 'Inactive'}
                                                 </Box>
                                             ) : (
                                                 row[column.id]
@@ -570,7 +602,7 @@ const Category = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                             <span>Category Management</span>
-                            <Badge badgeContent={typeof categoryCount === 'number' ? categoryCount : 0} color="primary">
+                            <Badge badgeContent={totalCount} color="primary">
                                 <CategoryIcon color="action" />
                             </Badge>
                         </Box>
@@ -602,7 +634,6 @@ const Category = () => {
                     </Box>
                 }
             >
-                <Grid container spacing={gridSpacing}></Grid>
                 {viewMode === 'card' ? renderCardView() : renderListView()}
             </MainCard>
 

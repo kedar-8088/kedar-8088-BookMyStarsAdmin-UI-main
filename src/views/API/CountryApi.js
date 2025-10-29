@@ -42,69 +42,107 @@ export const addCountry = async (data, headers) => {
 
 export const deleteCountry = async (id, headers) => {
     try {
+        console.log('=== DELETE COUNTRY DEBUG ===');
+        console.log('Country ID to delete:', id);
+        console.log('Headers:', headers);
+        console.log('Full URL:', `${BaseUrl}/bookmystarsadmin/country/v1/${id}`);
+        
         const res = await axios({
-            method: 'delete',
-            url: `${BaseUrl}/bookmystarsadmin/country/v1/delete/${id}`,
+            method: 'DELETE',
+            url: `${BaseUrl}/bookmystarsadmin/country/v1/${id}`,
             headers
         });
 
-        // Handle different response structures
-        const responseBody = res?.data?.body || res?.data;
-        const code = responseBody?.code;
-        const message = responseBody?.message || 'Country deleted successfully';
-        const error = responseBody?.error || 'An error occurred';
+        console.log('=== DELETE RESPONSE ===');
+        console.log('HTTP Status:', res.status);
+        console.log('Response Data:', res.data);
 
-        if (code === 200) {
-            Swal.fire('Deleted!', message, 'success');
-        } else if (code === 400) {
-            Swal.fire('Error', error, 'error');
-        } else {
-            // Handle other response structures or success without explicit code
-            Swal.fire('Deleted!', message, 'success');
-        }
+        // Handle response structure - similar to City API
+        const responseBody = res?.data?.body || res?.data;
+        const message = responseBody?.message || 'Country deleted successfully';
+        
+        console.log('✅ DELETE SUCCESS - Returning success result');
+        return { success: true, message };
     } catch (error) {
+        console.log('=== DELETE ERROR ===');
         console.error('Error deleting country:', error);
+        console.log('Error response:', error?.response);
+        console.log('Error status:', error?.response?.status);
+        console.log('Error data:', error?.response?.data);
+        
         const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete country';
-        Swal.fire('Error', errorMessage, 'error');
+        console.log('Final error message:', errorMessage);
+        throw new Error(errorMessage);
     }
 };
 
 export const getCountryById = async (id, headers) => {
-    return await axios({
-        method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/country/v1/get/${id}`,
-        headers: headers
-    });
+    try {
+        console.log(`Fetching country with ID: ${id}`);
+        const res = await axios({
+            method: 'GET',
+            url: `${BaseUrl}/bookmystarsadmin/country/v1/${id}`,
+            headers: headers
+        });
+        console.log('Get country by ID response:', res.data);
+        return res;
+    } catch (error) {
+        console.error(`Error fetching country with ID ${id}:`, error);
+        throw error; // Re-throw to let the calling component handle it
+    }
 };
 
 export const updateCountry = async (updatedData, headers) => {
     try {
+        console.log('Attempting to update country with data:', updatedData);
+        
+        const countryId = updatedData.countryId;
+        
+        // Prepare the data for the backend (remove countryId from body since it's in URL)
+        const requestData = {
+            countryName: updatedData.countryName,
+            countryCode: updatedData.countryCode,
+            isActive: updatedData.isActive,
+            updatedBy: updatedData.updatedBy
+        };
+        
+        console.log('Sending update request to:', `${BaseUrl}/bookmystarsadmin/country/v1/update/${countryId}`);
+        console.log('Request data:', requestData);
+        
         const res = await axios({
             method: 'PUT',
-            url: `${BaseUrl}/bookmystarsadmin/country/v1/update`,
+            url: `${BaseUrl}/bookmystarsadmin/country/v1/update/${countryId}`,
             headers: headers,
-            data: updatedData
+            data: requestData
         });
 
-        // Handle different response structures
+        console.log('Update API response:', res.data);
+
+        // Handle response structure
         const responseBody = res?.data?.body || res?.data;
         const code = responseBody?.code;
         const message = responseBody?.message || 'Country updated successfully';
         const error = responseBody?.error || 'An error occurred';
 
-        if (code === 200) {
-            Swal.fire('Success', message, 'success');
-        } else if (code === 400) {
-            Swal.fire('Error', error, 'error');
+        if (code === 200 || res.status === 200) {
+            return { success: true, message, data: responseBody?.data };
+        } else if (code === 400 || res.status === 400) {
+            throw new Error(error || 'Update operation failed');
         } else {
-            // Handle other response structures or success without explicit code
-            Swal.fire('Success', message, 'success');
+            // For unclear responses, check HTTP status
+            if (res.status >= 200 && res.status < 300) {
+                return { success: true, message, data: responseBody?.data };
+            } else {
+                throw new Error(message || 'Update operation failed');
+            }
         }
     } catch (error) {
         console.error('Error updating country:', error);
         
         let errorMessage = 'Failed to update country';
-        if (error?.response?.data?.error) {
+        if (error?.response?.status === 405) {
+            errorMessage = 'Update method not allowed. The server may not support this operation.';
+        } else if (error?.response?.data?.error) {
             errorMessage = error.response.data.error;
         } else if (error?.response?.data?.message) {
             errorMessage = error.response.data.message;
@@ -112,7 +150,7 @@ export const updateCountry = async (updatedData, headers) => {
             errorMessage = error.message;
         }
         
-        Swal.fire('Error', errorMessage, 'error');
+        throw new Error(errorMessage);
     }
 };
 
@@ -135,7 +173,7 @@ export const getActiveCountries = async (headers) => {
 export const getCountryByName = async (countryName, headers) => {
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/country/v1/getByName/${countryName}`,
+        url: `${BaseUrl}/bookmystarsadmin/country/v1/name/${countryName}`,
         headers: headers
     });
 };
@@ -143,7 +181,7 @@ export const getCountryByName = async (countryName, headers) => {
 export const getCountryByCode = async (countryCode, headers) => {
     return await axios({
         method: 'GET',
-        url: `${BaseUrl}/bookmystarsadmin/country/v1/getByCode/${countryCode}`,
+        url: `${BaseUrl}/bookmystarsadmin/country/v1/code/${countryCode}`,
         headers: headers
     });
 };
@@ -203,5 +241,37 @@ export const deactivateCountry = async (countryId, headers) => {
         console.error('Error deactivating country:', error);
         const errorMessage = error?.response?.data?.message || error?.message || 'Failed to deactivate country';
         Swal.fire('Error', errorMessage, 'error');
+    }
+};
+
+// Test function to verify delete endpoint
+export const testDeleteCountry = async (countryId, headers) => {
+    console.log('=== TESTING DELETE ENDPOINT ===');
+    console.log('Testing delete for country ID:', countryId);
+    
+    try {
+        // First, get the country to verify it exists
+        console.log('Step 1: Getting country details...');
+        const getRes = await getCountryById(countryId, headers);
+        console.log('Country exists:', getRes.data);
+        
+        // Then try to delete it
+        console.log('Step 2: Attempting delete...');
+        const deleteRes = await deleteCountry(countryId, headers);
+        console.log('Delete result:', deleteRes);
+        
+        // Finally, try to get it again to verify deletion
+        console.log('Step 3: Verifying deletion...');
+        try {
+            const verifyRes = await getCountryById(countryId, headers);
+            console.log('❌ Country still exists after deletion:', verifyRes.data);
+        } catch (verifyError) {
+            console.log('✅ Country successfully deleted (404 on verification):', verifyError.response?.status);
+        }
+        
+        return deleteRes;
+    } catch (error) {
+        console.log('❌ Test failed:', error);
+        throw error;
     }
 };

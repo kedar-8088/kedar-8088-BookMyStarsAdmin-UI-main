@@ -131,28 +131,27 @@ const JobRole = () => {
 
                 setJobRoles(tableData);
                 setTotalCount(typeof totalCountFromApi === 'number' ? totalCountFromApi : 0);
+                // Also update role count from the same data
+                setRoleCount(typeof totalCountFromApi === 'number' ? totalCountFromApi : 0);
             } else {
                 setJobRoles([]);
                 setTotalCount(0);
+                setRoleCount(0);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             Swal.fire('Error', 'Failed to load roles. Please try again.', 'error');
             setJobRoles([]);
             setTotalCount(0);
+            setRoleCount(0);
         }
     };
 
     const fetchRoleCount = async () => {
         try {
-            const res = await getJobRoleCount(headers);
-            const responseBody = res?.data?.body ?? res?.data;
-            const count = responseBody?.data || responseBody || 0;
-            
-            // Ensure count is a number
-            const numericCount = typeof count === 'number' ? count : 
-                                typeof count === 'string' ? parseInt(count, 10) || 0 : 0;
-            setRoleCount(numericCount);
+            // Since count endpoint doesn't exist, we'll get count from the main data fetch
+            // This will be handled in FetchData function
+            setRoleCount(0); // Default to 0, will be updated when data is fetched
         } catch (error) {
             console.error('Error fetching role count:', error);
             setRoleCount(0);
@@ -187,32 +186,36 @@ const JobRole = () => {
                         roleName: userdata.jobRoleName?.trim() || '',
                         roleDescription: userdata.jobRoleDescription?.trim() || '',
                         experienceLevel: userdata.experienceLevel || ''
+                        // Removed isActive and updatedBy fields to avoid Hibernate proxy serialization issues
+                        // The backend should handle these fields internally
                     };
-                    console.log('Update Data Debug:', {
-                        updatedData,
-                        jobRoleId,
-                        editMode,
-                        userdata
-                    });
-                    await updateJobRole(updatedData, headers);
+                    const result = await updateJobRole(updatedData, headers);
+                    if (result?.success) {
+                        // Success message is already shown by the API function
+                        setUserData({ jobRoleName: '', jobRoleDescription: '', experienceLevel: '' });
+                        setRefreshTrigger((prev) => !prev);
+                        setOpen(false);
+                    }
                 } else {
                     const newData = {
                         roleName: userdata.jobRoleName?.trim() || '',
                         roleDescription: userdata.jobRoleDescription?.trim() || '',
                         experienceLevel: userdata.experienceLevel || ''
+                        // Removed isActive and insertedBy fields to avoid Hibernate proxy serialization issues
+                        // The backend should handle these fields internally
                     };
-                    console.log('Add Data Debug:', {
-                        newData,
-                        userdata
-                    });
-                    await addJobRole(newData, headers);
+                    const result = await addJobRole(newData, headers);
+                    if (result?.success) {
+                        // Success message is already shown by the API function
+                        setUserData({ jobRoleName: '', jobRoleDescription: '', experienceLevel: '' });
+                        setRefreshTrigger((prev) => !prev);
+                        setOpen(false);
+                    }
                 }
-                setUserData({ jobRoleName: '', jobRoleDescription: '', experienceLevel: '' });
-                setRefreshTrigger((prev) => !prev);
-                setOpen(false);
             } catch (error) {
                 console.error('Error saving job role:', error);
-                Swal.fire('Error', 'Failed to save role. Please try again.', 'error');
+                // Error message is already shown by the API function
+                // Don't show additional error message here to avoid duplicate alerts
             }
         }
     };
@@ -228,9 +231,10 @@ const JobRole = () => {
             newErrors.jobRoleDescription = 'Enter the job role description';
         }
 
-        if (!userdata.experienceLevel || userdata.experienceLevel === '') {
-            newErrors.experienceLevel = 'Select an experience level';
-        }
+        // Make experience level optional - not all roles need experience levels
+        // if (!userdata.experienceLevel || userdata.experienceLevel === '') {
+        //     newErrors.experienceLevel = 'Select an experience level';
+        // }
 
         return newErrors;
     };
@@ -312,20 +316,15 @@ const JobRole = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await deleteJobRole(jobRoleId, headers);
-                    setRefreshTrigger((prev) => !prev);
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: 'Job role has been deleted.',
-                        icon: 'success'
-                    });
+                    const deleteResult = await deleteJobRole(jobRoleId, headers);
+                    if (deleteResult?.success) {
+                        // Success message is already shown by the API function
+                        setRefreshTrigger((prev) => !prev);
+                    }
                 } catch (error) {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'There was a problem deleting the job role.',
-                        icon: 'error'
-                    });
                     console.error('Error deleting job role:', error);
+                    // Error message is already shown by the API function
+                    // Don't show additional error message here to avoid duplicate alerts
                 }
             }
         });
@@ -618,17 +617,18 @@ const JobRole = () => {
                                 placeholder="e.g., Frontend Developer, UI/UX Designer"
                             />
                         </Grid>
-                        <Grid item xs={12} md={6}>
+                        {/* Temporarily hide experience level until basic create functionality works */}
+                        {/* <Grid item xs={12} md={6}>
                             <FormControl fullWidth error={!!errors.experienceLevel}>
-                                <InputLabel>Experience Level</InputLabel>
+                                <InputLabel>Experience Level (Optional)</InputLabel>
                                 <Select
                                     name="experienceLevel"
                                     value={userdata.experienceLevel}
                                     onChange={changeHandler}
-                                    label="Experience Level"
+                                    label="Experience Level (Optional)"
                                 >
                                     <MenuItem value="">
-                                        <em>Select experience level</em>
+                                        <em>Select experience level (optional)</em>
                                     </MenuItem>
                                     {experienceLevels.map((level) => (
                                         <MenuItem key={level.value} value={level.value}>
@@ -640,7 +640,7 @@ const JobRole = () => {
                                     <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>{errors.experienceLevel}</Box>
                                 )}
                             </FormControl>
-                        </Grid>
+                        </Grid> */}
                         <Grid item xs={12}>
                             <TextField
                                 fullWidth

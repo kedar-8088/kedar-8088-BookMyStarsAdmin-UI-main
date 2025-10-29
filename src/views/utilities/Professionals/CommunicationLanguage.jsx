@@ -17,7 +17,9 @@ import {
     deleteCommunicationLanguage,
     getCommunicationLanguageById,
     updateCommunicationLanguage,
-    getCommunicationLanguageCount
+    getCommunicationLanguageCount,
+    getAllCommunicationLanguages,
+    checkLanguageExists
 } from 'views/API/CommunicationLanguageApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect } from 'react';
@@ -50,8 +52,8 @@ import Swal from 'sweetalert2';
 const columns = [
     { id: 'languageId', label: 'ID' },
     { id: 'languageName', label: 'Language Name', minWidth: 150 },
-    { id: 'languageCode', label: 'Language Code', minWidth: 120 },
-    { id: 'isActive', label: 'Status', align: 'center' },
+    { id: 'languageDescription', label: 'Description', minWidth: 200 },
+    { id: 'isDelete', label: 'Status', align: 'center' },
     { id: 'insertedDate', label: 'Created Date', align: 'right' },
     { id: 'updatedDate', label: 'Updated Date', align: 'right' },
     { id: 'actions', label: 'Actions', align: 'right' }
@@ -67,8 +69,8 @@ const CommunicationLanguage = () => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'card'
     const [userdata, setUserData] = useState({
         languageName: '',
-        languageCode: '',
-        isActive: true
+        languageDescription: '',
+        isDelete: false
     });
     const [errors, setErrors] = useState({});
     const [refreshTrigger, setRefreshTrigger] = useState(false);
@@ -106,148 +108,36 @@ const CommunicationLanguage = () => {
                 return;
             }
 
-            let res;
-            try {
-                res = await fetchCommunicationLanguages(headers, page, rowsPerPage);
-            } catch (apiError) {
-                console.error('API Error:', apiError);
-                // Try alternative API call
-                try {
-                    console.log('Trying alternative API call...');
-                    res = await getAllCommunicationLanguages(headers);
-                } catch (altError) {
-                    console.error('Alternative API also failed:', altError);
-                    throw apiError; // Throw original error
-                }
-            }
+            const res = await fetchCommunicationLanguages(headers, page, rowsPerPage);
+            
+            // API now returns normalized response: { items, total, raw }
+            const fetchedData = res.items || [];
+            const totalCountFromApi = res.total || 0;
 
-            // If API returned normalized shape { items, total, raw }, prefer that
-            if (res && res.items !== undefined) {
-                console.log('Language API normalized response received:', { items: res.items, total: res.total });
-            }
-
-            // Debug API response (legacy/raw)
-            console.log('Language API Response Debug:', {
-                status: res?.raw?.status ?? res?.status,
-                statusText: res?.raw?.statusText ?? res?.statusText,
-                fullResponse: res?.raw ?? res,
-                data: res?.raw?.data ?? res?.data,
-                body: (res?.raw?.data ?? res?.data)?.body,
-                responseBody: (res?.raw?.data ?? res?.data)?.body ?? (res?.raw?.data ?? res?.data),
+            console.log('Language API Response:', {
+                items: fetchedData,
+                total: totalCountFromApi,
                 page,
-                rowsPerPage,
-                url: res?.raw?.config?.url ?? res?.config?.url
-            });
-
-            // Support both possible response shapes: normalized {items,total} OR axios response { data: { data: ... } }
-            const responseBody = (res && res.items !== undefined) ? { data: { content: res.items, totalElements: res.total } } : (res?.raw?.data?.body ?? res?.data?.body ?? res?.raw?.data ?? res?.data);
-            const dataNode = (res && res.items !== undefined) ? responseBody.data : responseBody?.data;
-            
-            // Handle different response structures
-            let fetchedData = [];
-            let totalCountFromApi = 0;
-            
-            console.log('Data extraction debug:', {
-                dataNode,
-                isArray: Array.isArray(dataNode),
-                responseBody,
-                isResponseArray: Array.isArray(responseBody)
-            });
-            
-            if (dataNode) {
-                if (Array.isArray(dataNode)) {
-                    fetchedData = dataNode;
-                    totalCountFromApi = dataNode.length;
-                } else if (dataNode.content && Array.isArray(dataNode.content)) {
-                    fetchedData = dataNode.content;
-                    totalCountFromApi = dataNode.totalElements || dataNode.totalCount || dataNode.content.length;
-                } else if (dataNode.languages && Array.isArray(dataNode.languages)) {
-                    fetchedData = dataNode.languages;
-                    totalCountFromApi = dataNode.totalElements || dataNode.totalCount || dataNode.languages.length;
-                } else if (dataNode.languageList && Array.isArray(dataNode.languageList)) {
-                    fetchedData = dataNode.languageList;
-                    totalCountFromApi = dataNode.totalElements || dataNode.totalCount || dataNode.languageList.length;
-                } else if (Array.isArray(dataNode)) {
-                    fetchedData = dataNode;
-                    totalCountFromApi = dataNode.length;
-                }
-            } else if (Array.isArray(responseBody)) {
-                fetchedData = responseBody;
-                totalCountFromApi = responseBody.length;
-            } else if (responseBody && Array.isArray(responseBody)) {
-                fetchedData = responseBody;
-                totalCountFromApi = responseBody.length;
-            }
-
-            console.log('Final fetchedData:', {
-                fetchedData,
-                length: fetchedData?.length,
-                isArray: Array.isArray(fetchedData),
-                firstItem: fetchedData?.[0]
+                rowsPerPage
             });
 
             if (fetchedData && Array.isArray(fetchedData)) {
-                // Debug individual language objects
-                console.log('Language Objects Debug:', {
-                    fetchedData: fetchedData.slice(0, 2), // Show first 2 items
-                    firstItemKeys: fetchedData.length > 0 ? Object.keys(fetchedData[0]) : []
-                });
-
-                const tableData = fetchedData.map((p, index) => {
-                    // Debug each individual language object
-                    console.log(`Language Object ${index}:`, {
-                        original: p,
-                        keys: Object.keys(p),
-                        languageCode: p.languageCode,
-                        language_code: p.language_code,
-                        code: p.code,
-                        langCode: p.langCode,
-                        languageCodeValue: p.languageCode,
-                        allValues: Object.values(p)
-                    });
-
-                    // Try to find the language code field dynamically
-                    let languageCodeValue = 'N/A';
-                    const possibleCodeFields = ['languageCode', 'language_code', 'code', 'langCode', 'lang_code', 'languageCodeValue', 'lang', 'isoCode', 'iso_code'];
-                    
-                    // First, let's see all available fields and their values
-                    console.log('All fields and values:', Object.entries(p));
-                    
-                    for (const field of possibleCodeFields) {
-                        if (p[field] && p[field] !== '' && p[field] !== null && p[field] !== undefined) {
-                            languageCodeValue = p[field];
-                            console.log(`Found language code in field '${field}':`, languageCodeValue);
-                            break;
-                        }
-                    }
-                    
-                    // If still N/A, let's check if there's any field that looks like a code
-                    if (languageCodeValue === 'N/A') {
-                        for (const [key, value] of Object.entries(p)) {
-                            if (typeof value === 'string' && value.length <= 5 && /^[a-zA-Z]+$/.test(value)) {
-                                console.log(`Potential language code found in field '${key}':`, value);
-                                languageCodeValue = value;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Handle isActive field similar to other components
-                    const isActiveValue = p.isActive !== undefined ? p.isActive : p.active !== undefined ? p.active : true;
-                    console.log(`Communication Language ${p.languageName} - isActive field: ${p.isActive}, active field: ${p.active}, final value: ${isActiveValue}`);
+                const tableData = fetchedData.map((p) => {
+                    // Handle isDelete field - if isDelete is true, status is "Deleted", otherwise "Active"
+                    const isDeleteValue = p.isDelete !== undefined ? p.isDelete : false;
                     
                     return {
                         languageId: p.languageId,
                         languageName: p.languageName || 'N/A',
-                        languageCode: languageCodeValue,
-                        isActive: isActiveValue ? 'Active' : 'Inactive',
+                        languageDescription: p.languageDescription || 'N/A',
+                        isDelete: isDeleteValue ? 'Deleted' : 'Active',
                         insertedDate: p.insertedDate ? moment(p.insertedDate).format('L') : 'N/A',
                         updatedDate: p.updatedDate ? moment(p.updatedDate).format('L') : 'N/A'
                     };
                 });
 
                 setLanguages(tableData);
-                setTotalCount(typeof totalCountFromApi === 'number' ? totalCountFromApi : 0);
+                setTotalCount(totalCountFromApi);
             } else {
                 setLanguages([]);
                 setTotalCount(0);
@@ -269,8 +159,8 @@ const CommunicationLanguage = () => {
     const fetchLanguageCount = async () => {
         try {
             const res = await getCommunicationLanguageCount(headers);
-            const responseBody = res?.data?.body ?? res?.data;
-            const count = responseBody?.data || responseBody || 0;
+            // API now returns normalized response with count property
+            const count = res.count ?? 0;
             
             // Ensure count is a number
             const numericCount = typeof count === 'number' ? count : 
@@ -308,8 +198,12 @@ const CommunicationLanguage = () => {
                     const updatedData = {
                         languageId: languageId,
                         languageName: userdata.languageName?.trim() || '',
-                        languageCode: userdata.languageCode?.trim() || '',
-                        isActive: Boolean(userdata.isActive)
+                        languageDescription: userdata.languageDescription?.trim() || '',
+                        isDelete: Boolean(userdata.isDelete),
+                        updatedBy: {
+                            userId: user?.userId || 1,
+                            userName: user?.userName || user?.username || 'admin'
+                        }
                     };
                     console.log('Update Data Debug:', {
                         updatedData,
@@ -317,30 +211,87 @@ const CommunicationLanguage = () => {
                         editMode,
                         userdata
                     });
-                    await updateCommunicationLanguage(updatedData, headers);
+                    const updateResult = await updateCommunicationLanguage(updatedData, headers);
+                    
+                    if (updateResult.success) {
+                        console.log('Language updated successfully:', updateResult.message);
+                        Swal.fire('Success', updateResult.message, 'success');
+                    } else {
+                        throw new Error(updateResult.message || 'Update operation failed');
+                    }
                 } else {
+                    // Debug user information
+                    console.log('User from sessionStorage:', user);
+                    console.log('User userId:', user?.userId);
+                    console.log('User userName:', user?.userName);
+                    console.log('User username:', user?.username);
+                    
+                    // Check if language already exists before creating
+                    const languageName = userdata.languageName?.trim();
+                    if (languageName) {
+                        try {
+                            const exists = await checkLanguageExists(languageName, headers);
+                            if (exists) {
+                                Swal.fire('Error', `Language "${languageName}" already exists. Please choose a different name.`, 'error');
+                                return;
+                            }
+                        } catch (error) {
+                            console.log('Language existence check failed, proceeding with creation:', error.message);
+                            // Continue with creation if check fails
+                        }
+                    }
+                    
                     const newData = {
-                        languageName: userdata.languageName?.trim() || '',
-                        languageCode: userdata.languageCode?.trim() || '',
-                        isActive: Boolean(userdata.isActive)
+                        languageName: languageName || '',
+                        languageDescription: userdata.languageDescription?.trim() || '',
+                        isDelete: Boolean(userdata.isDelete),
+                        createdBy: {
+                            userId: user?.userId || 1,
+                            userName: user?.userName || user?.username || 'admin'
+                        }
                     };
                     console.log('Add Data Debug:', {
                         newData,
-                        userdata
+                        userdata,
+                        userInfo: user
                     });
-                    await addCommunicationLanguage(newData, headers);
+                    const addResult = await addCommunicationLanguage(newData, headers);
+                    
+                    if (addResult.success) {
+                        console.log('Language added successfully:', addResult.message);
+                        Swal.fire('Success', addResult.message, 'success');
+                    } else {
+                        throw new Error(addResult.message || 'Add operation failed');
+                    }
                 }
-                setUserData({ languageName: '', languageCode: '', isActive: true });
+                setUserData({ languageName: '', languageDescription: '', isDelete: false });
                 setRefreshTrigger((prev) => !prev);
                 setOpen(false);
             } catch (error) {
                 console.error('Error saving communication language:', error);
-                // Try to show server-provided validation message if present
+                
+                // Handle specific error cases matching Java controller responses
                 const serverData = error?.response?.data;
                 let serverMessage = 'Failed to save language. Please try again.';
+                
                 if (serverData) {
-                    serverMessage = serverData?.message || serverData?.error || serverData?.body?.message || serverData?.body?.error || serverMessage;
+                    // Handle ClientResponseBean error structure: { code, status, message, error, data }
+                    serverMessage = serverData?.message || serverData?.error || serverMessage;
+                    
+                    // Handle specific error cases from Java controller
+                    if (serverData?.message?.includes('Language name is required')) {
+                        serverMessage = 'Language name is required and cannot be empty';
+                    } else if (serverData?.message?.includes('already exists')) {
+                        serverMessage = 'Language with this name already exists';
+                    } else if (serverData?.message?.includes('constraint violation')) {
+                        serverMessage = 'Invalid data provided - constraint violation';
+                    } else if (serverData?.message?.includes('authentication required')) {
+                        serverMessage = 'User authentication required - please login and try again';
+                    } else if (serverData?.message?.includes('Invalid data provided')) {
+                        serverMessage = serverData.message;
+                    }
                 }
+                
                 Swal.fire('Error', serverMessage, 'error');
             }
         }
@@ -349,17 +300,23 @@ const CommunicationLanguage = () => {
     const validateForm = () => {
         const newErrors = {};
 
+        // Match Java controller validation: Language name is required and cannot be empty
         if (!userdata.languageName || userdata.languageName.trim() === '') {
-            newErrors.languageName = 'Enter the language name';
+            newErrors.languageName = 'Language name is required and cannot be empty';
         }
 
-        if (!userdata.languageCode || userdata.languageCode.trim() === '') {
-            newErrors.languageCode = 'Enter the language code';
+        // Additional validation for language name length and format (max 100 chars as per model)
+        if (userdata.languageName && userdata.languageName.trim().length < 2) {
+            newErrors.languageName = 'Language name must be at least 2 characters long';
         }
 
-        // Validate language code format (2-3 characters, lowercase)
-        if (userdata.languageCode && !/^[a-z]{2,3}$/.test(userdata.languageCode.toLowerCase())) {
-            newErrors.languageCode = 'Language code must be 2-3 lowercase letters';
+        if (userdata.languageName && userdata.languageName.trim().length > 100) {
+            newErrors.languageName = 'Language name must be less than 100 characters';
+        }
+
+        // Language description validation (max 500 chars as per model)
+        if (userdata.languageDescription && userdata.languageDescription.trim().length > 500) {
+            newErrors.languageDescription = 'Language description must be less than 500 characters';
         }
 
         return newErrors;
@@ -369,7 +326,7 @@ const CommunicationLanguage = () => {
         const { name, value, checked } = e.target;
         setUserData({
             ...userdata,
-            [name]: name === 'isActive' ? checked : value
+            [name]: name === 'isDelete' ? checked : value
         });
 
         setErrors({
@@ -383,8 +340,8 @@ const CommunicationLanguage = () => {
         setEditMode(false);
         setUserData({
             languageName: '',
-            languageCode: '',
-            isActive: true
+            languageDescription: '',
+            isDelete: false
         });
         setErrors({});
         setOpen(true);
@@ -395,8 +352,8 @@ const CommunicationLanguage = () => {
         setEditMode(false);
         setUserData({
             languageName: '',
-            languageCode: '',
-            isActive: true
+            languageDescription: '',
+            isDelete: false
         });
         setErrors({});
         setLanguageId(null);
@@ -407,18 +364,17 @@ const CommunicationLanguage = () => {
         setOpen(true);
         try {
             const res = await getCommunicationLanguageById(languageId, headers);
-            // Support both possible response shapes: { body: { data } } or { data }
-            const responseBody = res?.data?.body ?? res?.data;
-            const det = responseBody?.data || responseBody;
+            // Handle updated API response structure: { language, ... }
+            const det = res.language || res?.data?.data || res?.data;
 
             if (det && det.languageId) {
                 console.log('Communication Language details for edit:', det);
-                const isActiveValue = det.isActive !== undefined ? det.isActive : det.active !== undefined ? det.active : true;
+                const isDeleteValue = det.isDelete !== undefined ? det.isDelete : false;
                 setLanguageId(det.languageId);
                 setUserData({
                     languageName: det.languageName || '',
-                    languageCode: det.languageCode || '',
-                    isActive: Boolean(isActiveValue)
+                    languageDescription: det.languageDescription || '',
+                    isDelete: Boolean(isDeleteValue)
                 });
             } else {
                 Swal.fire('Error', 'Failed to load language details', 'error');
@@ -525,21 +481,11 @@ const CommunicationLanguage = () => {
                                         </Typography>
                                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                             <Chip
-                                                label={language.languageCode}
-                                                size="small"
-                                                sx={{
-                                                    bgcolor: 'rgba(136, 14, 79, 0.2)',
-                                                    color: '#880E4F',
-                                                    fontWeight: 'bold',
-                                                    fontSize: '0.7rem'
-                                                }}
-                                            />
-                                            <Chip
-                                                label={language.isActive}
+                                                label={language.isDelete}
                                                 size="small"
                                                 sx={{
                                                     bgcolor:
-                                                        language.isActive === 'Active'
+                                                        language.isDelete === 'Active'
                                                             ? 'rgba(76, 175, 80, 0.9)'
                                                             : 'rgba(244, 67, 54, 0.9)',
                                                     color: 'white',
@@ -646,7 +592,7 @@ const CommunicationLanguage = () => {
                                                         <DeleteForever />
                                                     </IconButton>
                                                 </>
-                                            ) : column.id === 'isActive' ? (
+                                            ) : column.id === 'isDelete' ? (
                                                 <Box
                                                     sx={{
                                                         backgroundColor: row[column.id] === 'Active' ? '#4caf50' : '#f44336',
@@ -659,16 +605,20 @@ const CommunicationLanguage = () => {
                                                 >
                                                     {row[column.id]}
                                                 </Box>
-                                            ) : column.id === 'languageCode' ? (
+                                            ) : column.id === 'languageDescription' ? (
                                                 <Box
                                                     sx={{
-                                                        backgroundColor: '#e3f2fd',
-                                                        color: '#1976d2',
+                                                        backgroundColor: '#f5f5f5',
+                                                        color: '#333',
                                                         padding: '4px 8px',
                                                         borderRadius: '4px',
                                                         fontSize: '12px',
-                                                        fontWeight: 'bold'
+                                                        maxWidth: '200px',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap'
                                                     }}
+                                                    title={row[column.id]}
                                                 >
                                                     {row[column.id]}
                                                 </Box>
@@ -758,22 +708,21 @@ const CommunicationLanguage = () => {
                         <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
-                                label="Language Code"
-                                name="languageCode"
-                                value={userdata.languageCode}
+                                label="Language Description"
+                                name="languageDescription"
+                                value={userdata.languageDescription}
                                 onChange={changeHandler}
-                                error={!!errors.languageCode}
-                                helperText={errors.languageCode}
-                                placeholder="e.g., en, es, fr"
-                                inputProps={{
-                                    style: { textTransform: 'lowercase' }
-                                }}
+                                error={!!errors.languageDescription}
+                                helperText={errors.languageDescription}
+                                placeholder="Enter language description"
+                                multiline
+                                rows={3}
                             />
                         </Grid>
                         <Grid item xs={12}>
                             <FormControlLabel
-                                control={<Switch checked={userdata.isActive} onChange={changeHandler} name="isActive" color="primary" />}
-                                label="Active Status"
+                                control={<Switch checked={userdata.isDelete} onChange={changeHandler} name="isDelete" color="primary" />}
+                                label="Mark as Deleted"
                             />
                         </Grid>
                     </Grid>

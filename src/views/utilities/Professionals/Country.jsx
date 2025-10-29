@@ -63,6 +63,7 @@ const Country = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [countries, setCountries] = useState([]);
+    const [rawCountriesData, setRawCountriesData] = useState([]); // Store original API data
     const [open, setOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'card'
@@ -107,6 +108,7 @@ const Country = () => {
                 return;
             }
 
+            console.log('Fetching countries with page:', page, 'rowsPerPage:', rowsPerPage);
             const res = await fetchCountries(headers, page, rowsPerPage);
             console.log('Full API response:', res.data); // Debug log
 
@@ -118,7 +120,13 @@ const Country = () => {
             const fetchedData = dataNode?.content || dataNode?.countries || dataNode || [];
             const totalCountFromApi = dataNode?.totalElements || dataNode?.totalCount || Array.isArray(fetchedData) ? fetchedData.length : 0;
 
+            console.log('Fetched data:', fetchedData);
+            console.log('Total count from API:', totalCountFromApi);
+
             if (fetchedData && Array.isArray(fetchedData)) {
+                // Store raw data for editing purposes
+                setRawCountriesData(fetchedData);
+                
                 const tableData = fetchedData.map((p) => {
                     console.log('Country data:', p); // Debug log
                     const isActiveValue = p.isActive !== undefined ? p.isActive : p.active !== undefined ? p.active : true;
@@ -132,16 +140,31 @@ const Country = () => {
                     };
                 });
 
+                console.log('Processed table data:', tableData);
                 setCountries(tableData);
                 setTotalCount(totalCountFromApi);
             } else {
+                console.log('No valid data found, setting empty arrays');
                 setCountries([]);
+                setRawCountriesData([]);
                 setTotalCount(0);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-            Swal.fire('Error', 'Failed to load countries. Please try again.', 'error');
+            
+            // More specific error handling
+            let errorMessage = 'Failed to load countries. Please try again.';
+            if (error?.response?.status === 401) {
+                errorMessage = 'Authentication failed. Please login again.';
+            } else if (error?.response?.status === 403) {
+                errorMessage = 'You do not have permission to access countries.';
+            } else if (error?.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+            
+            Swal.fire('Error', errorMessage, 'error');
             setCountries([]);
+            setRawCountriesData([]);
             setTotalCount(0);
         }
     };
@@ -164,21 +187,38 @@ const Country = () => {
                         Swal.fire('Error', 'Cannot update: missing country ID', 'error');
                         return;
                     }
+                    // Try different data structures for update
                     const updatedData = {
-                        countryId,
+                        countryId: parseInt(countryId),
                         countryName: userdata.countryName?.trim() || '',
                         countryCode: userdata.countryCode?.trim() || '',
                         isActive: Boolean(userdata.isActive),
                         updatedBy: user?.userId ? {
-                            userId: user.userId,
+                            userId: parseInt(user.userId),
                             userName: user.userName || user.username || 'admin'
                         } : {
                             userId: 1,
                             userName: 'admin'
                         }
                     };
+                    
+                    // Alternative simpler structure
+                    const simpleUpdatedData = {
+                        countryId: parseInt(countryId),
+                        countryName: userdata.countryName?.trim() || '',
+                        countryCode: userdata.countryCode?.trim() || '',
+                        isActive: Boolean(userdata.isActive)
+                    };
                     console.log('Sending update data:', updatedData);
-                    await updateCountry(updatedData, headers);
+                    console.log('Headers being sent:', headers);
+                    const updateResult = await updateCountry(updatedData, headers);
+                    
+                    if (updateResult.success) {
+                        console.log('Country updated successfully:', updateResult.message);
+                        Swal.fire('Success', updateResult.message, 'success');
+                    } else {
+                        throw new Error(updateResult.message || 'Update operation failed');
+                    }
                 } else {
                     const newData = {
                         countryName: userdata.countryName?.trim() || '',
@@ -262,16 +302,51 @@ const Country = () => {
     };
 
     const handleEdit = async (countryId) => {
+        // Validate countryId
+        if (!countryId || countryId <= 0) {
+            console.error('Invalid country ID:', countryId);
+            Swal.fire('Error', 'Invalid country ID', 'error');
+            return;
+        }
+
+        // Check if user is authenticated
+        if (!user || !user.accessToken) {
+            console.error('User not authenticated');
+            Swal.fire('Error', 'Please login to continue', 'error');
+            return;
+        }
+
+        // First, try to find the country in the raw data
+        const existingCountry = rawCountriesData.find(country => country.countryId === countryId);
+        
+        if (existingCountry) {
+            console.log('Using existing country data for edit:', existingCountry);
+            setEditMode(true);
+            setOpen(true);
+            setCountryId(countryId);
+            const isActiveValue = existingCountry.isActive !== undefined ? existingCountry.isActive : existingCountry.active !== undefined ? existingCountry.active : true;
+            setUserData({
+                countryName: existingCountry.countryName || '',
+                countryCode: existingCountry.countryCode || '',
+                isActive: Boolean(isActiveValue)
+            });
+            return;
+        }
+
+        // If not found in list, try API call as fallback
         setEditMode(true);
         setOpen(true);
         try {
+            console.log('Country not found in list, attempting API call for ID:', countryId);
             const res = await getCountryById(countryId, headers);
+            console.log('API response for country details:', res);
+            
             // Support both possible response shapes
             const responseBody = res?.data?.body ?? res?.data;
             const det = responseBody?.data || responseBody;
 
             if (det && det.countryId) {
-                console.log('Country details for edit:', det); // Debug log
+                console.log('Country details for edit:', det);
                 const isActiveValue = det.isActive !== undefined ? det.isActive : det.active !== undefined ? det.active : true;
                 setCountryId(det.countryId);
                 setUserData({
@@ -280,12 +355,28 @@ const Country = () => {
                     isActive: Boolean(isActiveValue)
                 });
             } else {
-                Swal.fire('Error', 'Failed to load country details', 'error');
+                console.error('Invalid country data received:', det);
+                Swal.fire('Error', 'Invalid country data received from server', 'error');
                 setOpen(false);
             }
         } catch (error) {
             console.error('Error fetching country details:', error);
-            Swal.fire('Error', 'Failed to load country details. Please try again.', 'error');
+            
+            // More specific error handling
+            let errorMessage = 'Failed to load country details. Please try again.';
+            if (error?.response?.status === 404) {
+                errorMessage = `Country with ID ${countryId} not found. It may have been deleted.`;
+                // Refresh the data to remove the deleted country from the list
+                setRefreshTrigger((prev) => !prev);
+            } else if (error?.response?.status === 401) {
+                errorMessage = 'Authentication failed. Please login again.';
+            } else if (error?.response?.status === 403) {
+                errorMessage = 'You do not have permission to access this country.';
+            } else if (error?.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+            
+            Swal.fire('Error', errorMessage, 'error');
             setOpen(false);
         }
     };
@@ -302,21 +393,46 @@ const Country = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await deleteCountry(countryId, headers);
-                    setRefreshTrigger((prev) => !prev);
-                    Swal.fire({
-                        title: 'Deleted!',
-                        text: 'Country has been deleted.',
-                        icon: 'success'
-                    });
+                    console.log('=== HANDLE DELETE DEBUG ===');
+                    console.log('User confirmed deletion for country ID:', countryId);
+                    console.log('Headers being sent:', headers);
+                    
+                    const deleteResult = await deleteCountry(countryId, headers);
+                    
+                    console.log('=== DELETE RESULT ===');
+                    console.log('Delete result:', deleteResult);
+                    
+                    if (deleteResult.success) {
+                        console.log('✅ Country deleted successfully, refreshing data...');
+                        
+                        // Verify deletion by checking if country still exists in our data
+                        const countryStillExists = rawCountriesData.find(country => country.countryId === countryId);
+                        console.log('Country still exists in local data:', countryStillExists);
+                        
+                        setRefreshTrigger((prev) => !prev);
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: deleteResult.message || 'Country has been deleted successfully.',
+                            icon: 'success'
+                        });
+                    } else {
+                        console.log('❌ Delete result indicates failure');
+                        throw new Error(deleteResult.message || 'Delete operation failed');
+                    }
                 } catch (error) {
+                    console.log('=== DELETE ERROR IN COMPONENT ===');
+                    console.error('Error deleting country:', error);
+                    console.log('Error message:', error.message);
+                    console.log('Error stack:', error.stack);
+                    
                     Swal.fire({
                         title: 'Error!',
-                        text: 'There was a problem deleting the country.',
+                        text: error.message || 'There was a problem deleting the country.',
                         icon: 'error'
                     });
-                    console.error('Error deleting country:', error);
                 }
+            } else {
+                console.log('User cancelled deletion');
             }
         });
     };

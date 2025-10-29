@@ -51,21 +51,28 @@ export const fetchCities = async (headers, pageNumber = 0, pageSize = 10) => {
             }
         });
 
+        console.log('Cities response:', response);
+        
         // Handle the new API response format
         if (response.data && response.data.code === 200) {
             return {
                 data: {
-                    content: response.data.data.cities || [],
-                    totalElements: response.data.data.totalCount || 0,
-                    pageNumber: response.data.data.pageNumber,
-                    pageSize: response.data.data.pageSize,
+                    body: {
+                        data: {
+                            content: response.data.data.cities || [],
+                            totalElements: response.data.data.totalCount || 0,
+                            totalCount: response.data.data.totalCount || 0,
+                            pageNumber: response.data.data.pageNumber,
+                            pageSize: response.data.data.pageSize,
+                            cities: response.data.data.cities || []
+                        }
+                    },
                     status: response.data.status,
                     message: response.data.message
                 }
             };
         }
         
-        console.log('Cities response:', response);
         return response;
     } catch (error) {
         console.error('Fetch cities error details:', {
@@ -112,14 +119,15 @@ export const addCity = async (data) => {
         // Prefer checking status === 'SUCCESS'
         if (body.status === 'SUCCESS' || body.code === 200) {
             const successMessage = body.message || 'City created successfully';
-            Swal.fire('Success', successMessage, 'success');
+            // Don't show success message here - let the UI handle it
+            console.log('City created successfully:', successMessage);
             return body; // return parsed body for caller to use
         }
 
         // Fallback: handle error-like responses
         const errMsg = body.message || body.error || 'Failed to create city';
-        Swal.fire('Error', errMsg, 'error');
-        // throw so caller can react if needed
+        // Don't show error message here - let the UI handle it
+        console.error('City creation failed:', errMsg);
         const error = new Error(errMsg);
         error.response = res;
         throw error;
@@ -171,11 +179,8 @@ export const addCity = async (data) => {
             }
         }
 
-        Swal.fire({
-            title: 'Error',
-            text: errorMessage,
-            icon: 'error'
-        });
+        // Let the UI component handle error display
+        console.error('City creation error:', errorMessage);
         throw error;
     }
 };
@@ -357,20 +362,25 @@ export const deactivateCity = async (cityId) => {
 export const getCityCount = async () => {
     try {
         const authHeaders = getAuthHeaders();
-        // Get all cities to count them
+
+        // Fetch all cities
         const response = await axios({
             method: 'GET',
             url: `${BaseUrl}/bookmystarsadmin/city/v1/all`,
             headers: authHeaders
         });
 
+        // Normalize response
         const responseBody = response?.data?.body || response?.data;
         const cities = responseBody?.data || [];
-        
-        // Return the count
+
+        // Return count in the expected format
+        const count = Array.isArray(cities) ? cities.length : 0;
         return {
             data: {
-                data: Array.isArray(cities) ? cities.length : 0
+                body: {
+                    data: count
+                }
             }
         };
     } catch (error) {

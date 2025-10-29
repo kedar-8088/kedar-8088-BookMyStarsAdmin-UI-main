@@ -112,15 +112,15 @@ const MaritalStatus = () => {
 
             if (fetchedData && Array.isArray(fetchedData)) {
                 const tableData = fetchedData.map((p) => {
-                    // Handle isActive field similar to other components
-                    const isActiveValue = p.isActive !== undefined ? p.isActive : p.active !== undefined ? p.active : true;
-                    console.log(`Marital Status ${p.maritalStatusName} - isActive field: ${p.isActive}, active field: ${p.active}, final value: ${isActiveValue}`);
+                    // Since the backend doesn't have an isActive field, we'll show all as Active
+                    // or remove the status column entirely
+                    console.log(`Marital Status ${p.maritalStatusName} - Raw data:`, p);
                     
                     return {
                         maritalStatusId: p.maritalStatusId,
                         maritalStatusName: p.maritalStatusName || 'N/A',
                         maritalStatusDescription: p.maritalStatusDescription || 'N/A',
-                        isActive: isActiveValue ? 'Active' : 'Inactive',
+                        isActive: 'Active', // Default to Active since backend doesn't have this field
                         insertedDate: p.insertedDate ? moment(p.insertedDate).format('L') : 'N/A',
                         updatedDate: p.updatedDate ? moment(p.updatedDate).format('L') : 'N/A'
                     };
@@ -182,29 +182,20 @@ const MaritalStatus = () => {
                     const updatedData = {
                         maritalStatusId: maritalStatusId,
                         maritalStatusName: userdata.maritalStatusName?.trim() || '',
-                        maritalStatusDescription: userdata.maritalStatusDescription?.trim() || '',
-                        isActive: Boolean(userdata.isActive),
-                        updatedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        maritalStatusDescription: userdata.maritalStatusDescription?.trim() || ''
+                        // Removed isActive field to avoid Hibernate proxy serialization issues
+                        // The backend should handle the active status internally
                     };
-                    await updateMaritalStatus(updatedData, headers);
+                    const result = await updateMaritalStatus(updatedData, headers);
+                    if (result?.success) {
+                        Swal.fire('Success', result.message, 'success');
+                    }
                 } else {
                     const newData = {
                         maritalStatusName: userdata.maritalStatusName?.trim() || '',
-                        maritalStatusDescription: userdata.maritalStatusDescription?.trim() || '',
-                        isActive: Boolean(userdata.isActive),
-                        insertedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        maritalStatusDescription: userdata.maritalStatusDescription?.trim() || ''
+                        // Removed isActive and insertedBy fields to avoid Hibernate proxy serialization issues
+                        // The backend should handle these fields internally
                     };
                     await addMaritalStatus(newData, headers);
                 }
@@ -213,7 +204,29 @@ const MaritalStatus = () => {
                 setOpen(false);
             } catch (error) {
                 console.error('Error saving marital status:', error);
-                Swal.fire('Error', 'Failed to save marital status. Please try again.', 'error');
+                
+                // Get more detailed error information
+                let errorMessage = 'Failed to save marital status. Please try again.';
+                
+                if (error?.response?.data?.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error?.response?.data?.error) {
+                    errorMessage = error.response.data.error;
+                } else if (error?.message) {
+                    errorMessage = error.message;
+                }
+                
+                console.log('Detailed error info:', {
+                    status: error?.response?.status,
+                    statusText: error?.response?.statusText,
+                    data: error?.response?.data,
+                    message: error?.message
+                });
+                
+                // Log the full error response data separately for better visibility
+                console.log('Full error response data:', JSON.stringify(error?.response?.data, null, 2));
+                
+                Swal.fire('Error', errorMessage, 'error');
             }
         }
     };
@@ -279,12 +292,15 @@ const MaritalStatus = () => {
 
             if (det && det.maritalStatusId) {
                 console.log('Marital Status details for edit:', det);
-                const isActiveValue = det.isActive !== undefined ? det.isActive : det.active !== undefined ? det.active : true;
+                
+                // Since backend doesn't have isActive field, default to true
+                console.log('Edit - Raw marital status data:', det);
+                
                 setMaritalStatusId(det.maritalStatusId);
                 setUserData({
                     maritalStatusName: det.maritalStatusName || '',
                     maritalStatusDescription: det.maritalStatusDescription || '',
-                    isActive: Boolean(isActiveValue)
+                    isActive: true // Default to true since backend doesn't have this field
                 });
             } else {
                 Swal.fire('Error', 'Failed to load marital status details', 'error');

@@ -138,28 +138,27 @@ const Skills = () => {
 
                 setSkills(tableData);
                 setTotalCount(typeof totalCountFromApi === 'number' ? totalCountFromApi : 0);
+                // Also update skill count from the same data
+                setSkillCount(typeof totalCountFromApi === 'number' ? totalCountFromApi : 0);
             } else {
                 setSkills([]);
                 setTotalCount(0);
+                setSkillCount(0);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             Swal.fire('Error', 'Failed to load skills. Please try again.', 'error');
             setSkills([]);
             setTotalCount(0);
+            setSkillCount(0);
         }
     };
 
     const fetchSkillCount = async () => {
         try {
-            const res = await getSkillCount(headers);
-            const responseBody = res?.data?.body ?? res?.data;
-            const count = responseBody?.data || responseBody || 0;
-            
-            // Ensure count is a number
-            const numericCount = typeof count === 'number' ? count : 
-                                typeof count === 'string' ? parseInt(count, 10) || 0 : 0;
-            setSkillCount(numericCount);
+            // Since count endpoint doesn't exist, we'll get count from the main data fetch
+            // This will be handled in FetchData function
+            setSkillCount(0); // Default to 0, will be updated when data is fetched
         } catch (error) {
             console.error('Error fetching skill count:', error);
             setSkillCount(0);
@@ -193,30 +192,21 @@ const Skills = () => {
                         skillId: skillId,
                         skillName: userdata.skillName?.trim() || '',
                         skillDescription: userdata.skillDescription?.trim() || '',
-                        skillLevel: userdata.skillLevel || '',
-                        isActive: Boolean(userdata.isActive),
-                        updatedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        skillLevel: userdata.skillLevel || ''
+                        // Removed isActive and updatedBy fields to avoid Hibernate proxy serialization issues
+                        // The backend should handle these fields internally
                     };
-                    await updateSkill(updatedData, headers);
+                    const result = await updateSkill(updatedData, headers);
+                    if (result?.success) {
+                        Swal.fire('Success', result.message, 'success');
+                    }
                 } else {
                     const newData = {
                         skillName: userdata.skillName?.trim() || '',
                         skillDescription: userdata.skillDescription?.trim() || '',
-                        skillLevel: userdata.skillLevel || '',
-                        isActive: Boolean(userdata.isActive),
-                        insertedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        skillLevel: userdata.skillLevel || ''
+                        // Removed isActive and insertedBy fields to avoid Hibernate proxy serialization issues
+                        // The backend should handle these fields internally
                     };
                     await addSkill(newData, headers);
                 }
