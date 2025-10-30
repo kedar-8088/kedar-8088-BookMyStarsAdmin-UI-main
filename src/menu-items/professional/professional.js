@@ -96,13 +96,7 @@ const professional = {
                     url: '/professional/communication-language',
                     breadcrumbs: false
                 },
-                {
-                    id: 'professional_job_role',
-                    title: 'Job Role',
-                    type: 'item',
-                    url: '/professional/job-role',
-                    breadcrumbs: false
-                },
+                
                 {
                     id: 'professional_skills',
                     title: 'Skills',

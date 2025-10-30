@@ -33,11 +33,39 @@ export const addCommunicationLanguage = async (data, headers) => {
             throw new Error('Language name is required and cannot be empty');
         }
 
+      
+        // Include creator metadata to satisfy FK constraint on created_by
+        // Backend expects createdBy as an object: { userId, userName }
+        let createdByPayload = undefined;
+        if (data?.createdBy && typeof data.createdBy === 'object' && data.createdBy.userId) {
+            createdByPayload = {
+                userId: data.createdBy.userId,
+                userName: data.createdBy.userName || 'admin'
+            };
+        } else if (data?.userId) {
+            createdByPayload = {
+                userId: data.userId,
+                userName: data.userName || 'admin'
+            };
+        }
+        // Fallback for legacy naming or direct form
+        if (!createdByPayload && data?.insertedBy && data.insertedBy.userId) {
+            createdByPayload = {
+                userId: data.insertedBy.userId,
+                userName: data.insertedBy.userName || 'admin'
+            };
+        }
+        const requestData = {
+            languageName: data.languageName?.trim(),
+            languageDescription: data.languageDescription?.trim() || '',
+            ...(createdByPayload ? { createdBy: createdByPayload } : {})
+        };
+
         const res = await axios({
             method: 'POST',
             url: `${BaseUrl}/bookmystarsadmin/language/v1/create`,
             headers,
-            data: data
+            data: requestData
         });
 
         // Handle ClientResponseBean structure: { code, status, message, error, data }
@@ -111,8 +139,10 @@ export const addCommunicationLanguage = async (data, headers) => {
         });
 
         Swal.fire('Error', errorMessage, 'error');
-        // Re-throw so callers can react if needed
-        throw error;
+        // Re-throw with normalized error so caller can branch on status
+        const normalized = new Error(errorMessage);
+        normalized.response = error?.response;
+        throw normalized;
     }
 };
 
@@ -183,11 +213,20 @@ export const getCommunicationLanguageById = async (id, headers) => {
 
 export const updateCommunicationLanguage = async (updatedData, headers) => {
     try {
+        // Send minimal payload expected by backend controller
+        const requestData = {
+            languageId: updatedData.languageId,
+            languageName: updatedData.languageName?.trim(),
+            languageDescription: updatedData.languageDescription?.trim() || '',
+            // Preserve soft-delete semantics if present; default to false when undefined
+            isDelete: typeof updatedData.isDelete === 'boolean' ? updatedData.isDelete : false
+        };
+
         const res = await axios({
             method: 'PUT',
             url: `${BaseUrl}/bookmystarsadmin/language/v1/update`,
             headers: headers,
-            data: updatedData
+            data: requestData
         });
 
         // Handle ClientResponseBean structure: { code, status, message, error, data }
@@ -245,7 +284,9 @@ export const updateCommunicationLanguage = async (updatedData, headers) => {
         }
         
         Swal.fire('Error', errorMessage, 'error');
-        throw error;
+        const normalized = new Error(errorMessage);
+        normalized.response = error?.response;
+        throw normalized;
     }
 };
 

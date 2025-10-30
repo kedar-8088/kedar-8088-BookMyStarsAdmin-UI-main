@@ -16,9 +16,8 @@ export const addSkill = async (data, headers) => {
         const requestData = {
             skillName: data.skillName,
             skillDescription: data.skillDescription,
-            skillLevel: data.skillLevel
-            // Removed isActive and insertedBy fields to avoid serialization issues
-            // The backend should handle these fields internally
+            skillLevel: data.skillLevel,
+            isActive: true // Always save as active (for addSkill)
         };
 
         console.log('Creating skill with data:', requestData);
@@ -98,9 +97,8 @@ export const updateSkill = async (updatedData, headers) => {
         const requestData = {
             skillName: updatedData.skillName,
             skillDescription: updatedData.skillDescription,
-            skillLevel: updatedData.skillLevel
-            // Removed isActive and updatedBy fields to avoid serialization issues
-            // The backend should handle these fields internally
+            skillLevel: updatedData.skillLevel,
+            isActive: true // Always save as active (for updateSkill)
         };
         
         console.log('Sending update request to:', `${BaseUrl}/bookmystarsadmin/skill/v1/update/${updatedData.skillId}`);

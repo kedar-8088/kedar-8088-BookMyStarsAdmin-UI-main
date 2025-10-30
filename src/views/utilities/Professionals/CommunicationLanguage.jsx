@@ -130,7 +130,7 @@ const CommunicationLanguage = () => {
                         languageId: p.languageId,
                         languageName: p.languageName || 'N/A',
                         languageDescription: p.languageDescription || 'N/A',
-                        isDelete: isDeleteValue ? 'Deleted' : 'Active',
+                        isDelete: isDeleteValue ? 'Inactive' : 'Active',
                         insertedDate: p.insertedDate ? moment(p.insertedDate).format('L') : 'N/A',
                         updatedDate: p.updatedDate ? moment(p.updatedDate).format('L') : 'N/A'
                     };
@@ -241,14 +241,12 @@ const CommunicationLanguage = () => {
                         }
                     }
                     
+                    // Minimal payload to avoid backend constraint violations
                     const newData = {
                         languageName: languageName || '',
                         languageDescription: userdata.languageDescription?.trim() || '',
-                        isDelete: Boolean(userdata.isDelete),
-                        createdBy: {
-                            userId: user?.userId || 1,
-                            userName: user?.userName || user?.username || 'admin'
-                        }
+                        // Backend enforces FK on created_by; send numeric user id if available
+                        createdBy: typeof user?.userId === 'number' ? user.userId : parseInt(user?.userId, 10) || 1
                     };
                     console.log('Add Data Debug:', {
                         newData,
@@ -291,6 +289,10 @@ const CommunicationLanguage = () => {
                         serverMessage = serverData.message;
                     }
                 }
+                // Surface duplicate gracefully if 409 without message details
+                if (error?.response?.status === 409 && (!serverMessage || serverMessage === 'Failed to save language. Please try again.')) {
+                    serverMessage = 'Language already exists or violates a unique constraint.';
+                }
                 
                 Swal.fire('Error', serverMessage, 'error');
             }
@@ -324,10 +326,17 @@ const CommunicationLanguage = () => {
 
     const changeHandler = (e) => {
         const { name, value, checked } = e.target;
-        setUserData({
-            ...userdata,
-            [name]: name === 'isDelete' ? checked : value
-        });
+        if (name === 'isActive') {
+            setUserData({
+                ...userdata,
+                isDelete: !checked
+            });
+        } else {
+            setUserData({
+                ...userdata,
+                [name]: name === 'isDelete' ? checked : value
+            });
+        }
 
         setErrors({
             ...errors,
@@ -687,7 +696,7 @@ const CommunicationLanguage = () => {
                 <Grid container spacing={gridSpacing}></Grid>
                 {viewMode === 'card' ? renderCardView() : renderListView()}
             </MainCard>
-            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth="md">
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth="md" disableEnforceFocus disableRestoreFocus>
                 <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.25rem', backgroundColor: '#f5f5f5' }}>
                     {editMode ? 'Edit Communication Language' : 'Add Communication Language'}
                 </DialogTitle>
@@ -721,8 +730,8 @@ const CommunicationLanguage = () => {
                         </Grid>
                         <Grid item xs={12}>
                             <FormControlLabel
-                                control={<Switch checked={userdata.isDelete} onChange={changeHandler} name="isDelete" color="primary" />}
-                                label="Mark as Deleted"
+                                control={<Switch checked={!userdata.isDelete} onChange={changeHandler} name="isActive" color="primary" />}
+                                label="Is Active"
                             />
                         </Grid>
                     </Grid>

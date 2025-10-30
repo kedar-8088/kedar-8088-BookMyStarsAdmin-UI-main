@@ -89,7 +89,6 @@ const ProfessionalCity = Loadable(lazy(() => import('views/utilities/Professiona
 const ProfessionalState = Loadable(lazy(() => import('views/utilities/Professionals/State')));
 const ProfessionalBodyType = Loadable(lazy(() => import('views/utilities/Professionals/BodyType')));
 const ProfessionalCommunicationLanguage = Loadable(lazy(() => import('views/utilities/Professionals/CommunicationLanguage')));
-const ProfessionalJobRole = Loadable(lazy(() => import('views/utilities/Professionals/JobRole')));
 const ProfessionalSkills = Loadable(lazy(() => import('views/utilities/Professionals/Skills')));
 const ProfessionalEyeColor = Loadable(lazy(() => import('views/utilities/Professionals/EyeColor')));
 const ProfessionalHairColor = Loadable(lazy(() => import('views/utilities/Professionals/HairColor')));
@@ -112,7 +111,7 @@ const ProfessionalRoutes = {
         { path: 'state', element: <ProfessionalState />, errorElement: <CustomErrorElement /> },
         { path: 'body-type', element: <ProfessionalBodyType />, errorElement: <CustomErrorElement /> },
         { path: 'communication-language', element: <ProfessionalCommunicationLanguage />, errorElement: <CustomErrorElement /> },
-        { path: 'job-role', element: <ProfessionalJobRole />, errorElement: <CustomErrorElement /> },
+        
         { path: 'skills', element: <ProfessionalSkills />, errorElement: <CustomErrorElement /> },
         { path: 'eye-color', element: <ProfessionalEyeColor />, errorElement: <CustomErrorElement /> },
         { path: 'hair-color', element: <ProfessionalHairColor />, errorElement: <CustomErrorElement /> },

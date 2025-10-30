@@ -123,16 +123,19 @@ const Skills = () => {
                 const tableData = fetchedData.map((p) => {
                     // Handle isActive field similar to other components
                     const isActiveValue = p.isActive !== undefined ? p.isActive : p.active !== undefined ? p.active : true;
-                    console.log(`Skill ${p.skillName} - isActive field: ${p.isActive}, active field: ${p.active}, final value: ${isActiveValue}`);
-                    
+
+                    // Enhanced fallback for date properties: check all common alternatives
+                    const insertedDateRaw = p.insertedDate || p.inserted_date || p.createdAt || p.created_at || null;
+                    const updatedDateRaw = p.updatedDate || p.updated_date || p.updatedAt || p.updated_at || null;
+
                     return {
                         skillId: p.skillId,
                         skillName: p.skillName || 'N/A',
                         skillDescription: p.skillDescription || 'N/A',
                         skillLevel: p.skillLevel || 'Not Set',
                         isActive: isActiveValue ? 'Active' : 'Inactive',
-                        insertedDate: p.insertedDate ? moment(p.insertedDate).format('L') : 'N/A',
-                        updatedDate: p.updatedDate ? moment(p.updatedDate).format('L') : 'N/A'
+                        insertedDate: insertedDateRaw ? moment(insertedDateRaw).format('L') : 'N/A',
+                        updatedDate: updatedDateRaw ? moment(updatedDateRaw).format('L') : 'N/A'
                     };
                 });
 
@@ -192,9 +195,9 @@ const Skills = () => {
                         skillId: skillId,
                         skillName: userdata.skillName?.trim() || '',
                         skillDescription: userdata.skillDescription?.trim() || '',
-                        skillLevel: userdata.skillLevel || ''
-                        // Removed isActive and updatedBy fields to avoid Hibernate proxy serialization issues
-                        // The backend should handle these fields internally
+                        skillLevel: userdata.skillLevel || '',
+                        isActive: true   // ensure activity status true for updates
+                        // The backend should handle updatedBy fields as needed
                     };
                     const result = await updateSkill(updatedData, headers);
                     if (result?.success) {
@@ -204,9 +207,9 @@ const Skills = () => {
                     const newData = {
                         skillName: userdata.skillName?.trim() || '',
                         skillDescription: userdata.skillDescription?.trim() || '',
-                        skillLevel: userdata.skillLevel || ''
-                        // Removed isActive and insertedBy fields to avoid Hibernate proxy serialization issues
-                        // The backend should handle these fields internally
+                        skillLevel: userdata.skillLevel || '',
+                        isActive: true  // ensure activity status true for add
+                        // The backend should handle insertedBy fields as needed
                     };
                     await addSkill(newData, headers);
                 }

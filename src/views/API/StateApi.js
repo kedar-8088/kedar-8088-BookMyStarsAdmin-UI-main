@@ -19,7 +19,7 @@ export const addState = async (data, headers) => {
             stateCode: data.stateCode.toUpperCase(),
             countryId: parseInt(data.countryId, 10),
             isActive: Boolean(data.isActive),
-            insertedBy: data.insertedBy
+            createdBy: data.insertedBy // CHANGED from insertedBy to createdBy
         };
         console.log('Formatted request data:', requestData);
         const res = await axios({

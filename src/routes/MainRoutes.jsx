@@ -97,7 +97,6 @@ const UtilsCountry = Loadable(lazy(() => import('views/utilities/Professionals/C
 const UtilsCity = Loadable(lazy(() => import('views/utilities/Professionals/City')));
 const UtilsState = Loadable(lazy(() => import('views/utilities/Professionals/State')));
 const UtilsCommunicationLanguage = Loadable(lazy(() => import('views/utilities/Professionals/CommunicationLanguage')));
-const UtilsJobRole = Loadable(lazy(() => import('views/utilities/Professionals/JobRole')));
 const UtilsSkills = Loadable(lazy(() => import('views/utilities/Professionals/Skills')));
 const UtilsEyeColor = Loadable(lazy(() => import('views/utilities/Professionals/EyeColor')));
 const UtilsHairColor = Loadable(lazy(() => import('views/utilities/Professionals/HairColor')));
@@ -136,7 +135,7 @@ const MainRoutes = {
                         { path: 'city', element: <UtilsCity />, errorElement: <CustomErrorElement /> },
                         { path: 'state', element: <UtilsState />, errorElement: <CustomErrorElement /> },
                         { path: 'communication-language', element: <UtilsCommunicationLanguage />, errorElement: <CustomErrorElement /> },
-                        { path: 'job-role', element: <UtilsJobRole />, errorElement: <CustomErrorElement /> },
+                        
                         { path: 'skills', element: <UtilsSkills />, errorElement: <CustomErrorElement /> },
                         { path: 'eye-color', element: <UtilsEyeColor />, errorElement: <CustomErrorElement /> },
                         { path: 'hair-color', element: <UtilsHairColor />, errorElement: <CustomErrorElement /> },
