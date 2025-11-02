@@ -42,7 +42,8 @@ import {
     Typography,
     Divider,
     Switch,
-    FormControlLabel
+    FormControlLabel,
+    useMediaQuery
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { DeleteForever, Edit, ViewList, ViewModule } from '@mui/icons-material';
@@ -60,6 +61,8 @@ const columns = [
 
 const BodyType = () => {
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [bodyTypes, setBodyTypes] = useState([]);
@@ -428,15 +431,31 @@ const BodyType = () => {
     );
 
     return (
-        <Box sx={{ mt: 4 }}>
+        <Box sx={{ mt: 4, px: { xs: 1, sm: 2 } }}>
         <MainCard
             title={
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <span>Body Type Management</span>
+                <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'space-between', 
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    gap: 2,
+                    width: '100%'
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                        <Typography variant="h4" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
+                            Body Type Management
+                        </Typography>
                         <Badge badgeContent={typeof bodyTypeCount === 'number' ? bodyTypeCount : 0} color="primary" />
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1,
+                        flexWrap: 'wrap',
+                        width: { xs: '100%', sm: 'auto' },
+                        justifyContent: { xs: 'flex-start', sm: 'flex-end' }
+                    }}>
                         <ToggleButtonGroup value={viewMode} exclusive onChange={handleViewModeChange} size="small">
                             <ToggleButton value="list" aria-label="list view">
                                 <ViewList />
@@ -448,11 +467,17 @@ const BodyType = () => {
                         <Button
                             variant="contained"
                             style={{ backgroundColor: '#00afb5', color: 'white' }}
-                            sx={{ display: 'flex', alignItems: 'center', fontSize: '15px' }}
+                            sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                fontSize: { xs: '13px', sm: '15px' },
+                                whiteSpace: 'nowrap',
+                                width: { xs: '100%', sm: 'auto' }
+                            }}
                             onClick={handleAddBodyType}
                         >
-                            Add Body Type
-                            <AddIcon sx={{ color: '#fff' }} />
+                            {isMobile ? 'Add' : 'Add Body Type'}
+                            <AddIcon sx={{ color: '#fff', ml: 0.5 }} />
                         </Button>
                     </Box>
                 </Box>
@@ -462,94 +487,150 @@ const BodyType = () => {
 
             {viewMode === 'card' ? (
                 renderCardView()
-            ) : (
-                <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                    <TableContainer sx={{ maxHeight: 440 }}>
-                        <Table stickyHeader aria-label="sticky table">
-                            <TableHead>
-                                <TableRow>
-                                    {columns.map((column) => (
-                                        <TableCell
-                                            key={column.id}
-                                            align={column.align}
-                                            style={{ minWidth: column.minWidth, fontWeight: 600, fontSize: 15 }}
-                                        >
-                                            {column.label}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={columns.length} align="center">
-                                            Loading...
-                                        </TableCell>
-                                    </TableRow>
-                                ) : bodyTypes.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={columns.length} align="center">
-                                            No data found
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    bodyTypes.map((row) => (
-                                        <TableRow hover role="checkbox" tabIndex={-1} key={row.bodyTypeId}>
-                                            {columns.map((column) => (
-                                                <TableCell key={column.id} align={column.align}>
-                                                    {column.id === 'isActive' ? (
-                                                        <Box
-                                                            sx={{
-                                                                backgroundColor: row.isActive ? '#4caf50' : '#f44336',
-                                                                color: 'white',
-                                                                padding: '4px 8px',
-                                                                borderRadius: '4px',
-                                                                fontSize: '12px',
-                                                                fontWeight: 'bold',
-                                                                textAlign: 'center',
-                                                                display: 'inline-block',
-                                                                minWidth: 80
-                                                            }}
-                                                        >
-                                                            {row.isActive ? 'Active' : 'Inactive'}
-                                                        </Box>
-                                                    ) : column.id === 'actions' ? (
-                                                        <>
-                                                            <IconButton onClick={() => handleEdit(row.bodyTypeId)} style={{ color: '#00afb5' }}>
-                                                                <Edit />
-                                                            </IconButton>
-                                                            <IconButton onClick={() => handleDelete(row.bodyTypeId)} color="error">
-                                                                <DeleteForever />
-                                                            </IconButton>
-                                                        </>
-                                                    ) : (
-                                                        row[column.id]
-                                                    )}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <TablePagination
-                        rowsPerPageOptions={[10, 25, 100]}
-                        component="div"
-                        count={totalCount}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                </Paper>
-            )}
+            ) : (() => {
+                const visibleColumns = isMobile 
+                    ? columns.filter(col => ['bodyTypeId', 'bodyTypeName', 'actions'].includes(col.id))
+                    : isTablet
+                    ? columns.filter(col => !['insertedDate', 'updatedDate', 'bodyTypeDescription'].includes(col.id))
+                    : columns;
 
-            <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+                return (
+                    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                        <TableContainer 
+                            sx={{ 
+                                maxHeight: 440,
+                                overflowX: 'auto',
+                                '&::-webkit-scrollbar': { height: '8px' },
+                                '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1' },
+                                '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '4px' },
+                                '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#555' }
+                            }}
+                        >
+                            <Table stickyHeader aria-label="sticky table" sx={{ minWidth: isMobile ? 600 : '100%' }}>
+                                <TableHead>
+                                    <TableRow>
+                                        {visibleColumns.map((column) => (
+                                            <TableCell
+                                                key={column.id}
+                                                align={column.align}
+                                                sx={{ 
+                                                    minWidth: isMobile ? (column.minWidth ? Math.min(column.minWidth, 100) : 'auto') : column.minWidth,
+                                                    fontWeight: 600,
+                                                    fontSize: isMobile ? 13 : 15,
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                {column.label}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {loading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={visibleColumns.length} align="center">
+                                                Loading...
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : bodyTypes.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={visibleColumns.length} align="center">
+                                                No data found
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        bodyTypes.map((row) => (
+                                            <TableRow hover role="checkbox" tabIndex={-1} key={row.bodyTypeId}>
+                                                {visibleColumns.map((column) => (
+                                                    <TableCell 
+                                                        key={column.id} 
+                                                        align={column.align}
+                                                        sx={{ fontSize: isMobile ? 12 : 14, whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {column.id === 'isActive' ? (
+                                                            <Box
+                                                                sx={{
+                                                                    backgroundColor: row.isActive ? '#4caf50' : '#f44336',
+                                                                    color: 'white',
+                                                                    padding: isMobile ? '2px 6px' : '4px 8px',
+                                                                    borderRadius: '4px',
+                                                                    fontSize: isMobile ? '10px' : '12px',
+                                                                    fontWeight: 'bold',
+                                                                    textAlign: 'center',
+                                                                    display: 'inline-block',
+                                                                    minWidth: isMobile ? 60 : 80
+                                                                }}
+                                                            >
+                                                                {row.isActive ? 'Active' : 'Inactive'}
+                                                            </Box>
+                                                        ) : column.id === 'actions' ? (
+                                                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                                <IconButton 
+                                                                    size={isMobile ? 'small' : 'medium'}
+                                                                    onClick={() => handleEdit(row.bodyTypeId)} 
+                                                                    style={{ color: '#00afb5' }}
+                                                                >
+                                                                    <Edit fontSize={isMobile ? 'small' : 'medium'} />
+                                                                </IconButton>
+                                                                <IconButton 
+                                                                    size={isMobile ? 'small' : 'medium'}
+                                                                    onClick={() => handleDelete(row.bodyTypeId)} 
+                                                                    color="error"
+                                                                >
+                                                                    <DeleteForever fontSize={isMobile ? 'small' : 'medium'} />
+                                                                </IconButton>
+                                                            </Box>
+                                                        ) : (
+                                                            <Typography 
+                                                                variant="body2" 
+                                                                sx={{ 
+                                                                    fontSize: isMobile ? 12 : 14,
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    maxWidth: isMobile ? 150 : 'none'
+                                                                }}
+                                                            >
+                                                                {row[column.id]}
+                                                            </Typography>
+                                                        )}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <TablePagination
+                            rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 100]}
+                            component="div"
+                            count={totalCount}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            sx={{
+                                overflowX: 'auto',
+                                '& .MuiTablePagination-toolbar': { flexWrap: 'wrap', gap: 1 },
+                                '& .MuiTablePagination-selectLabel': { fontSize: isMobile ? 12 : 14 },
+                                '& .MuiTablePagination-displayedRows': { fontSize: isMobile ? 12 : 14 }
+                            }}
+                        />
+                    </Paper>
+                );
+            })()}
+
+            <Dialog 
+                open={open} 
+                onClose={() => setOpen(false)} 
+                fullWidth 
+                maxWidth={isMobile ? 'xs' : 'md'}
+                fullScreen={isMobile}
+            >
                 <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.25rem', backgroundColor: '#f5f5f5' }}>
                     {editMode ? 'Edit Body Type' : 'Add Body Type'}
                 </DialogTitle>
-                <Box component="form" onSubmit={postData} noValidate sx={{ p: 3 }}>
+                <Box component="form" onSubmit={postData} noValidate sx={{ p: { xs: 2, sm: 3 } }}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <TextField

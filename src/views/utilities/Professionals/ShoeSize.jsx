@@ -37,7 +37,8 @@ import {
     Divider,
     ToggleButton,
     ToggleButtonGroup,
-    Badge
+    Badge,
+    useMediaQuery
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { DeleteForever, Edit, CheckCircle, Cancel, ViewList, ViewModule, DirectionsWalk } from '@mui/icons-material';
@@ -58,6 +59,8 @@ const columns = [
 
 const ShoeSize = () => {
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [shoeSizes, setShoeSizes] = useState([]);
