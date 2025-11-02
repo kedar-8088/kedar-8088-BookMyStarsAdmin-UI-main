@@ -3,21 +3,62 @@ import Swal from 'sweetalert2';
 import { BaseUrl } from 'BaseUrl';
 
 export const fetchCategories = async (headers, pageNumber = 0, pageSize = 10) => {
-    return await axios({
-        method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/category/v1/list?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-        headers: headers
-    });
+    try {
+        // Validate headers
+        if (!headers || !headers.Authorization) {
+            console.error('Category fetch - Missing or invalid headers:', headers);
+            throw new Error('Authentication headers are required');
+        }
+
+        // Validate and normalize pagination parameters
+        const validPageNumber = Math.max(0, parseInt(pageNumber) || 0);
+        const validPageSize = Math.max(1, parseInt(pageSize) || 10);
+
+        console.log('Fetch Categories Request:', {
+            url: `${BaseUrl}/bookmystarsadmin/category/v1/list`,
+            pageNumber: validPageNumber,
+            pageSize: validPageSize,
+            hasAuth: !!headers.Authorization
+        });
+
+        const res = await axios({
+            method: 'get',
+            url: `${BaseUrl}/bookmystarsadmin/category/v1/list?pageNumber=${validPageNumber}&pageSize=${validPageSize}`,
+            headers: headers
+        });
+
+        console.log('Category fetch response:', res?.data);
+        return res;
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        console.error('Error response:', error?.response?.data);
+        console.error('Error status:', error?.response?.status);
+        
+        // Re-throw to let caller handle it
+        throw error;
+    }
 };
 
 export const addCategory = async (data, headers) => {
     try {
         console.log('Adding category with data:', data);
+        
+        // Transform insertedBy to createdBy if present (to match backend expectations)
+        const requestData = {
+            categoryName: data.categoryName,
+            categoryDescription: data.categoryDescription,
+            isActive: Boolean(data.isActive),
+            isDelete: Boolean(data.isDelete || false),
+            createdBy: data.createdBy || data.insertedBy // Support both field names
+        };
+        
+        console.log('Formatted category request data:', requestData);
+        
         const res = await axios({
             method: 'POST',
             url: `${BaseUrl}/bookmystarsadmin/category/v1/create`,
             headers,
-            data: data
+            data: requestData
         });
 
         console.log('Add category response:', res.data);

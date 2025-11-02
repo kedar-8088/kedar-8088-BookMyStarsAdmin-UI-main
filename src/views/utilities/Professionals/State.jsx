@@ -110,10 +110,12 @@ const State = () => {
             const res = await fetchStates(headers, page, rowsPerPage);
 
             // Support both possible response shapes: { body: { data } } or { data }
+            // Response structure: { code, status, message, error, data: { states: [], totalCount, pageNumber, pageSize } }
             const responseBody = res?.data?.body ?? res?.data;
             const dataNode = responseBody?.data;
             const fetchedData = dataNode?.content || dataNode?.states || dataNode || [];
-            const totalCountFromApi = dataNode?.totalElements || dataNode?.totalCount || Array.isArray(fetchedData) ? fetchedData.length : 0;
+            // Extract totalCount - handle both totalElements (Spring pagination) and totalCount (custom pagination)
+            const totalCountFromApi = dataNode?.totalElements ?? dataNode?.totalCount ?? (Array.isArray(fetchedData) ? fetchedData.length : 0);
 
             if (fetchedData && Array.isArray(fetchedData)) {
                 console.log('States data:', fetchedData);

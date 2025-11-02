@@ -3,11 +3,54 @@ import Swal from 'sweetalert2';
 import { BaseUrl } from 'BaseUrl';
 
 export const fetchStates = async (headers, pageNumber = 0, pageSize = 10) => {
-    return await axios({
-        method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/state/v1/list?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-        headers: headers
-    });
+    try {
+        // Validate headers
+        if (!headers || !headers.Authorization) {
+            console.error('fetchStates - Missing or invalid headers:', headers);
+            throw new Error('Authentication headers are required');
+        }
+
+        // Validate and normalize pagination parameters
+        const validPageNumber = Math.max(0, parseInt(pageNumber) || 0);
+        const validPageSize = Math.max(1, parseInt(pageSize) || 10);
+
+        const url = `${BaseUrl}/bookmystarsadmin/state/v1/list?pageNumber=${validPageNumber}&pageSize=${validPageSize}`;
+        console.log('Fetch States Request:', {
+            url,
+            pageNumber: validPageNumber,
+            pageSize: validPageSize,
+            hasAuth: !!headers.Authorization
+        });
+
+        const res = await axios({
+            method: 'get',
+            url,
+            headers: headers
+        });
+
+        console.log('Fetch States Response:', res?.data);
+        
+        // The response structure is: 
+        // { code, status, message, error, data: { states: [], totalCount, pageNumber, pageSize } }
+        const responseBody = res?.data;
+        if (responseBody) {
+            const dataNode = responseBody.data;
+            if (dataNode && Array.isArray(dataNode.states)) {
+                console.log(`Fetched ${dataNode.states.length} states (total: ${dataNode.totalCount})`);
+            } else if (dataNode && dataNode.totalCount === 0) {
+                console.log('No states found in database');
+            }
+        }
+
+        return res;
+    } catch (error) {
+        console.error('Error fetching states:', error);
+        console.error('Error response:', error?.response?.data);
+        console.error('Error status:', error?.response?.status);
+        
+        // Re-throw to let caller handle it
+        throw error;
+    }
 };
 
 export const addState = async (data, headers) => {
@@ -137,11 +180,41 @@ export const updateState = async (updatedData, headers) => {
 };
 
 export const getAllStates = async (headers) => {
-    return await axios({
-        method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/state/v1/all`,
-        headers
-    });
+    try {
+        // Validate headers
+        if (!headers || !headers.Authorization) {
+            console.error('getAllStates - Missing or invalid headers:', headers);
+            throw new Error('Authentication headers are required');
+        }
+
+        console.log('Fetching all states from:', `${BaseUrl}/bookmystarsadmin/state/v1/all`);
+
+        const res = await axios({
+            method: 'get',
+            url: `${BaseUrl}/bookmystarsadmin/state/v1/all`,
+            headers
+        });
+
+        console.log('getAllStates response:', res?.data);
+        
+        // The response structure is: { code, status, message, error, data }
+        // where data is an array of states
+        const responseBody = res?.data;
+        if (responseBody && responseBody.code === 200 && Array.isArray(responseBody.data)) {
+            console.log(`Fetched ${responseBody.data.length} states`);
+        } else if (responseBody && responseBody.code === 200 && responseBody.data?.length === 0) {
+            console.log('No states found in database');
+        }
+
+        return res;
+    } catch (error) {
+        console.error('Error fetching all states:', error);
+        console.error('Error response:', error?.response?.data);
+        console.error('Error status:', error?.response?.status);
+        
+        // Re-throw to let caller handle it
+        throw error;
+    }
 };
 
 export const getActiveStates = async (headers) => {

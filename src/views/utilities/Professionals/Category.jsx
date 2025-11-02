@@ -239,8 +239,8 @@ const Category = () => {
                         categoryDescription: userdata.categoryDescription?.trim() || '',
                         isActive: Boolean(userdata.isActive),
                         isDelete: false, // Add required is_delete field
-                        insertedBy: user?.userId ? {
-                            userId: user.userId,
+                        createdBy: user?.userId ? {
+                            userId: parseInt(user.userId, 10),
                             userName: user.userName || user.username || 'admin'
                         } : {
                             userId: 1,
