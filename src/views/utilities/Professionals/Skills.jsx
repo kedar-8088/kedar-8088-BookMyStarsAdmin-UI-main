@@ -360,7 +360,7 @@ const Skills = () => {
     };
 
     const renderCardView = () => (
-        <Grid container spacing={3}>
+        <Grid container spacing={isMobile ? 2 : 3}>
             {skills.length === 0 ? (
                 <Grid item xs={12}>
                     <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -500,126 +500,180 @@ const Skills = () => {
         </Grid>
     );
 
-    const renderListView = () => (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer sx={{ maxHeight: 440 }}>
-                <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                        <TableRow>
-                            {columns.map((column) => (
-                                <TableCell
-                                    key={column.id}
-                                    align={column.align}
-                                    style={{ minWidth: column.minWidth, fontWeight: 600, fontSize: 15 }}
-                                >
-                                    {column.label}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {skills.length === 0 ? (
+    const renderListView = () => {
+        const visibleColumns = isMobile 
+            ? columns.filter(col => ['skillId', 'skillName', 'skillLevel', 'actions'].includes(col.id))
+            : isTablet
+            ? columns.filter(col => !['insertedDate', 'updatedDate', 'skillDescription'].includes(col.id))
+            : columns;
+
+        return (
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                <TableContainer 
+                    sx={{ 
+                        maxHeight: 440,
+                        overflowX: 'auto',
+                        '&::-webkit-scrollbar': { height: '8px' },
+                        '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1' },
+                        '&::-webkit-scrollbar-thumb': { backgroundColor: '#888', borderRadius: '4px' },
+                        '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#555' }
+                    }}
+                >
+                    <Table stickyHeader aria-label="sticky table" sx={{ minWidth: isMobile ? 600 : '100%' }}>
+                        <TableHead>
                             <TableRow>
-                                <TableCell colSpan={columns.length} align="center">
-                                    <Box sx={{ py: 2 }}>
-                                        <div>No skills found</div>
-                                        <div style={{ fontSize: '12px', color: 'gray' }}>Skills array length: {skills.length}</div>
-                                    </Box>
-                                </TableCell>
+                                {visibleColumns.map((column) => (
+                                    <TableCell
+                                        key={column.id}
+                                        align={column.align}
+                                        sx={{ 
+                                            minWidth: isMobile ? (column.minWidth ? Math.min(column.minWidth, 100) : 'auto') : column.minWidth,
+                                            fontWeight: 600,
+                                            fontSize: isMobile ? 13 : 15,
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        {column.label}
+                                    </TableCell>
+                                ))}
                             </TableRow>
-                        ) : (
-                            skills.map((row) => (
-                                <TableRow hover role="checkbox" tabIndex={-1} key={row.skillId}>
-                                    {columns.map((column) => (
-                                        <TableCell key={column.id} align={column.align}>
-                                            {column.id === 'actions' ? (
-                                                <>
-                                                    <IconButton onClick={() => handleEdit(row.skillId)} style={{ color: '#00afb5' }}>
-                                                        <Edit />
-                                                    </IconButton>
-                                                    <IconButton onClick={() => handleDelete(row.skillId)} color="error">
-                                                        <DeleteForever />
-                                                    </IconButton>
-                                                </>
-                                            ) : column.id === 'isActive' ? (
-                                                <Box
-                                                    sx={{
-                                                        backgroundColor: row[column.id] === 'Active' ? '#4caf50' : '#f44336',
-                                                        color: 'white',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 'bold'
-                                                    }}
-                                                >
-                                                    {row[column.id]}
-                                                </Box>
-                                            ) : column.id === 'skillLevel' ? (
-                                                <Box
-                                                    sx={{
-                                                        backgroundColor: getSkillLevelColor(row[column.id]),
-                                                        color: 'white',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 'bold'
-                                                    }}
-                                                >
-                                                    {row[column.id]}
-                                                </Box>
-                                            ) : column.id === 'skillDescription' ? (
-                                                <Box
-                                                    sx={{
-                                                        maxWidth: 200,
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    {row[column.id]}
-                                                </Box>
-                                            ) : (
-                                                row[column.id]
-                                            )}
-                                        </TableCell>
-                                    ))}
+                        </TableHead>
+                        <TableBody>
+                            {skills.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={visibleColumns.length} align="center">
+                                        <Box sx={{ py: 2 }}>
+                                            <div>No skills found</div>
+                                        </Box>
+                                    </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[10, 25, 100]}
-                component="div"
-                count={totalCount}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-        </Paper>
-    );
+                            ) : (
+                                skills.map((row) => (
+                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.skillId}>
+                                        {visibleColumns.map((column) => (
+                                            <TableCell 
+                                                key={column.id} 
+                                                align={column.align}
+                                                sx={{ fontSize: isMobile ? 12 : 14, whiteSpace: 'nowrap' }}
+                                            >
+                                                {column.id === 'isActive' ? (
+                                                    <Box
+                                                        sx={{
+                                                            backgroundColor: row.isActive === 'Active' ? '#4caf50' : '#f44336',
+                                                            color: 'white',
+                                                            padding: isMobile ? '2px 6px' : '4px 8px',
+                                                            borderRadius: '4px',
+                                                            fontSize: isMobile ? '10px' : '12px',
+                                                            fontWeight: 'bold',
+                                                            textAlign: 'center',
+                                                            display: 'inline-block',
+                                                            minWidth: isMobile ? 60 : 80
+                                                        }}
+                                                    >
+                                                        {row.isActive}
+                                                    </Box>
+                                                ) : column.id === 'skillLevel' ? (
+                                                    <Box
+                                                        sx={{
+                                                            backgroundColor: getSkillLevelColor(row[column.id]),
+                                                            color: 'white',
+                                                            padding: isMobile ? '2px 6px' : '4px 8px',
+                                                            borderRadius: '4px',
+                                                            fontSize: isMobile ? '10px' : '12px',
+                                                            fontWeight: 'bold',
+                                                            textAlign: 'center',
+                                                            display: 'inline-block',
+                                                            minWidth: isMobile ? 60 : 80
+                                                        }}
+                                                    >
+                                                        {row[column.id]}
+                                                    </Box>
+                                                ) : column.id === 'actions' ? (
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton 
+                                                            size={isMobile ? 'small' : 'medium'}
+                                                            onClick={() => handleEdit(row.skillId)} 
+                                                            style={{ color: '#00afb5' }}
+                                                        >
+                                                            <Edit fontSize={isMobile ? 'small' : 'medium'} />
+                                                        </IconButton>
+                                                        <IconButton 
+                                                            size={isMobile ? 'small' : 'medium'}
+                                                            onClick={() => handleDelete(row.skillId)} 
+                                                            color="error"
+                                                        >
+                                                            <DeleteForever fontSize={isMobile ? 'small' : 'medium'} />
+                                                        </IconButton>
+                                                    </Box>
+                                                ) : (
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        sx={{ 
+                                                            fontSize: isMobile ? 12 : 14,
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            maxWidth: isMobile ? 150 : 'none'
+                                                        }}
+                                                    >
+                                                        {row[column.id]}
+                                                    </Typography>
+                                                )}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                <TablePagination
+                    rowsPerPageOptions={isMobile ? [10, 25] : [10, 25, 100]}
+                    component="div"
+                    count={totalCount}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    sx={{
+                        overflowX: 'auto',
+                        '& .MuiTablePagination-toolbar': { flexWrap: 'wrap', gap: 1 },
+                        '& .MuiTablePagination-selectLabel': { fontSize: isMobile ? 12 : 14 },
+                        '& .MuiTablePagination-displayedRows': { fontSize: isMobile ? 12 : 14 }
+                    }}
+                />
+            </Paper>
+        );
+    };
 
     return (
-        <Box sx={{ mt: 4 }}>
+        <Box sx={{ mt: 4, px: { xs: 1, sm: 2 } }}>
             <MainCard
                 title={
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <span>Skills Management</span>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        justifyContent: 'space-between', 
+                        alignItems: { xs: 'flex-start', sm: 'center' },
+                        gap: 2,
+                        width: '100%'
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                            <Typography variant="h4" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
+                                Skills Management
+                            </Typography>
                             <Badge badgeContent={typeof skillCount === 'number' ? skillCount : 0} color="primary">
                                 <Psychology color="action" />
                             </Badge>
                         </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <ToggleButtonGroup
-                                value={viewMode}
-                                exclusive
-                                onChange={handleViewModeChange}
-                                size="small"
-                                sx={{ bgcolor: 'background.paper' }}
-                            >
+                        <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1,
+                            flexWrap: 'wrap',
+                            width: { xs: '100%', sm: 'auto' },
+                            justifyContent: { xs: 'flex-start', sm: 'flex-end' }
+                        }}>
+                            <ToggleButtonGroup value={viewMode} exclusive onChange={handleViewModeChange} size="small">
                                 <ToggleButton value="list" aria-label="list view">
                                     <ViewList />
                                 </ToggleButton>
@@ -630,11 +684,17 @@ const Skills = () => {
                             <Button
                                 variant="contained"
                                 style={{ backgroundColor: '#00afb5', color: 'white' }}
-                                sx={{ display: 'flex', alignItems: 'center', fontSize: '15px' }}
+                                sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    fontSize: { xs: '13px', sm: '15px' },
+                                    whiteSpace: 'nowrap',
+                                    width: { xs: '100%', sm: 'auto' }
+                                }}
                                 onClick={handleAddSkill}
                             >
-                                Add Skill
-                                <AddIcon sx={{ color: '#fff' }} />
+                                {isMobile ? 'Add' : 'Add Skill'}
+                                <AddIcon sx={{ color: '#fff', ml: 0.5 }} />
                             </Button>
                         </Box>
                     </Box>
@@ -643,11 +703,17 @@ const Skills = () => {
                 <Grid container spacing={gridSpacing}></Grid>
                 {viewMode === 'card' ? renderCardView() : renderListView()}
             </MainCard>
-            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth="md">
+            <Dialog 
+                open={open} 
+                onClose={handleCloseDialog} 
+                fullWidth 
+                maxWidth={isMobile ? 'xs' : 'md'}
+                fullScreen={isMobile}
+            >
                 <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.25rem', backgroundColor: '#f5f5f5' }}>
                     {editMode ? 'Edit Skill' : 'Add Skill'}
                 </DialogTitle>
-                <Box component="form" onSubmit={postData} noValidate sx={{ p: 3 }}>
+                <Box component="form" onSubmit={postData} noValidate sx={{ p: { xs: 2, sm: 3 } }}>
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
                             <TextField

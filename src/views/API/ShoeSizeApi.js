@@ -90,10 +90,11 @@ export const updateShoeSize = async (updatedData, headers) => {
         // Handle different response structures
         const responseBody = res?.data?.body || res?.data;
         const code = responseBody?.code;
+        const status = responseBody?.status;
         const message = responseBody?.message || 'Shoe Size updated successfully';
         const error = responseBody?.error || 'An error occurred';
 
-        if (code === 200) {
+        if (code === 201 || code === 200 || status === 'SUCCESS') {
             Swal.fire('Success', message, 'success');
         } else if (code === 400) {
             Swal.fire('Error', error, 'error');
