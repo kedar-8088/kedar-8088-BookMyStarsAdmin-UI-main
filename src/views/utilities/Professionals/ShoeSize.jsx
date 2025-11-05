@@ -50,7 +50,6 @@ const columns = [
     { id: 'sizeSystem', label: 'Size System', minWidth: 100 },
     { id: 'sizeValue', label: 'Size Value', minWidth: 100 },
     { id: 'sizeUnit', label: 'Size Unit', minWidth: 100 },
-    { id: 'shoeSizeDescription', label: 'Description', minWidth: 200 },
     { id: 'isActive', label: 'Status', align: 'center' },
     { id: 'insertedDate', label: 'Created Date', align: 'right' },
     { id: 'updatedDate', label: 'Updated Date', align: 'right' },
@@ -69,7 +68,6 @@ const ShoeSize = () => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'card'
     const [userdata, setUserData] = useState({
         shoeSizeName: '',
-        shoeSizeDescription: '',
         sizeSystem: '',
         sizeUnit: '',
         sizeValue: '',
@@ -128,7 +126,6 @@ const ShoeSize = () => {
                     return {
                         shoeSizeId: p.shoeSizeId,
                         shoeSizeName: p.shoeSizeName || 'N/A',
-                        shoeSizeDescription: p.shoeSizeDescription || 'N/A',
                         sizeSystem: p.sizeSystem || 'N/A',
                         sizeValue: p.sizeValue || 'N/A',
                         sizeUnit: p.sizeUnit || 'N/A',
@@ -195,7 +192,6 @@ const ShoeSize = () => {
                     const updatedData = {
                         shoeSizeId: shoeSizeId,
                         shoeSizeName: userdata.shoeSizeName?.toString().trim() || '',
-                        shoeSizeDescription: userdata.shoeSizeDescription?.toString().trim() || '',
                         sizeSystem: userdata.sizeSystem?.toString().trim() || '',
                         sizeUnit: userdata.sizeUnit?.toString().trim() || '',
                         sizeValue: userdata.sizeValue?.toString().trim() || ''
@@ -204,7 +200,6 @@ const ShoeSize = () => {
                 } else {
                     const newData = {
                         shoeSizeName: userdata.shoeSizeName?.trim() || '',
-                        shoeSizeDescription: userdata.shoeSizeDescription?.trim() || '',
                         sizeSystem: userdata.sizeSystem?.trim() || '',
                         sizeUnit: userdata.sizeUnit?.trim() || '',
                         sizeValue: userdata.sizeValue?.trim() || '',
@@ -219,7 +214,7 @@ const ShoeSize = () => {
                     };
                     await addShoeSize(newData, headers);
                 }
-                setUserData({ shoeSizeName: '', shoeSizeDescription: '', sizeSystem: '', sizeUnit: '', sizeValue: '', isActive: true });
+                setUserData({ shoeSizeName: '', sizeSystem: '', sizeUnit: '', sizeValue: '', isActive: true });
                 setRefreshTrigger((prev) => !prev);
                 setOpen(false);
             } catch (error) {
@@ -234,10 +229,6 @@ const ShoeSize = () => {
 
         if (!userdata.shoeSizeName || userdata.shoeSizeName.trim() === '') {
             newErrors.shoeSizeName = 'Enter the shoe size name';
-        }
-
-        if (!userdata.shoeSizeDescription || userdata.shoeSizeDescription.trim() === '') {
-            newErrors.shoeSizeDescription = 'Enter the shoe size description';
         }
 
         if (!userdata.sizeSystem || userdata.sizeSystem.trim() === '') {
@@ -274,7 +265,6 @@ const ShoeSize = () => {
         setEditMode(false);
         setUserData({
             shoeSizeName: '',
-            shoeSizeDescription: '',
             sizeSystem: '',
             sizeUnit: '',
             sizeValue: '',
@@ -289,7 +279,6 @@ const ShoeSize = () => {
         setEditMode(false);
         setUserData({
             shoeSizeName: '',
-            shoeSizeDescription: '',
             sizeSystem: '',
             sizeUnit: '',
             sizeValue: '',
@@ -314,7 +303,6 @@ const ShoeSize = () => {
                 setShoeSizeId(det.shoeSizeId);
                 setUserData({
                     shoeSizeName: det.shoeSizeName || '',
-                    shoeSizeDescription: det.shoeSizeDescription || '',
                     sizeSystem: det.sizeSystem || '',
                     sizeUnit: det.sizeUnit ? String(det.sizeUnit) : '',
                     sizeValue: det.sizeValue !== null && det.sizeValue !== undefined ? String(det.sizeValue) : '',
@@ -458,21 +446,6 @@ const ShoeSize = () => {
                                     </Box>
                                 </Box>
 
-                                <Typography
-                                    variant="body2"
-                                    sx={{
-                                        mb: 2,
-                                        opacity: 0.8,
-                                        color: '#F57C00',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 3,
-                                        WebkitBoxOrient: 'vertical',
-                                        overflow: 'hidden'
-                                    }}
-                                >
-                                    {shoeSize.shoeSizeDescription}
-                                </Typography>
-
                                 <Divider sx={{ my: 1, bgcolor: 'rgba(245, 124, 0, 0.2)' }} />
 
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -517,7 +490,7 @@ const ShoeSize = () => {
         const visibleColumns = isMobile 
             ? columns.filter(col => ['shoeSizeId', 'shoeSizeName', 'sizeValue', 'actions'].includes(col.id))
             : isTablet
-            ? columns.filter(col => !['insertedDate', 'updatedDate', 'shoeSizeDescription'].includes(col.id))
+            ? columns.filter(col => !['insertedDate', 'updatedDate'].includes(col.id))
             : columns;
 
         return (
@@ -543,7 +516,10 @@ const ShoeSize = () => {
                                             minWidth: isMobile ? (column.minWidth ? Math.min(column.minWidth, 100) : 'auto') : column.minWidth,
                                             fontWeight: 600,
                                             fontSize: isMobile ? 13 : 15,
-                                            whiteSpace: 'nowrap'
+                                            whiteSpace: 'nowrap',
+                                            ...(column.id === 'actions' && {
+                                                textAlign: 'right'
+                                            })
                                         }}
                                     >
                                         {column.label}
@@ -567,7 +543,13 @@ const ShoeSize = () => {
                                             <TableCell 
                                                 key={column.id} 
                                                 align={column.align}
-                                                sx={{ fontSize: isMobile ? 12 : 14, whiteSpace: 'nowrap' }}
+                                                sx={{ 
+                                                    fontSize: isMobile ? 12 : 14, 
+                                                    whiteSpace: 'nowrap',
+                                                    ...(column.id === 'actions' && {
+                                                        textAlign: 'right'
+                                                    })
+                                                }}
                                             >
                                                 {column.id === 'isActive' ? (
                                                     <Box
@@ -586,7 +568,7 @@ const ShoeSize = () => {
                                                         {row.isActive}
                                                     </Box>
                                                 ) : column.id === 'actions' ? (
-                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                    <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
                                                         <IconButton 
                                                             size={isMobile ? 'small' : 'medium'}
                                                             onClick={() => handleEdit(row.shoeSizeId)} 
@@ -773,20 +755,6 @@ const ShoeSize = () => {
                                     <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.5 }}>{errors.sizeUnit}</Box>
                                 )}
                             </FormControl>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Shoe Size Description"
-                                name="shoeSizeDescription"
-                                value={userdata.shoeSizeDescription}
-                                onChange={changeHandler}
-                                error={!!errors.shoeSizeDescription}
-                                helperText={errors.shoeSizeDescription}
-                                placeholder="Describe the shoe size characteristics and measurements"
-                                multiline
-                                rows={4}
-                            />
                         </Grid>
                         <Grid item xs={12}>
                             <FormControlLabel

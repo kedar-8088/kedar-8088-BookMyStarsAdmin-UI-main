@@ -508,7 +508,10 @@ const MaritalStatus = () => {
                                             minWidth: isMobile ? (column.minWidth ? Math.min(column.minWidth, 100) : 'auto') : column.minWidth,
                                             fontWeight: 600,
                                             fontSize: isMobile ? 13 : 15,
-                                            whiteSpace: 'nowrap'
+                                            whiteSpace: 'nowrap',
+                                            ...(column.id === 'actions' && {
+                                                textAlign: 'right'
+                                            })
                                         }}
                                     >
                                         {column.label}
@@ -532,7 +535,13 @@ const MaritalStatus = () => {
                                             <TableCell 
                                                 key={column.id} 
                                                 align={column.align}
-                                                sx={{ fontSize: isMobile ? 12 : 14, whiteSpace: 'nowrap' }}
+                                                sx={{ 
+                                                    fontSize: isMobile ? 12 : 14, 
+                                                    whiteSpace: 'nowrap',
+                                                    ...(column.id === 'actions' && {
+                                                        textAlign: 'right'
+                                                    })
+                                                }}
                                             >
                                                 {column.id === 'isActive' ? (
                                                     <Box
@@ -551,7 +560,7 @@ const MaritalStatus = () => {
                                                         {row.isActive}
                                                     </Box>
                                                 ) : column.id === 'actions' ? (
-                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                                         <IconButton 
                                                             size={isMobile ? 'small' : 'medium'}
                                                             onClick={() => handleEdit(row.maritalStatusId)} 
