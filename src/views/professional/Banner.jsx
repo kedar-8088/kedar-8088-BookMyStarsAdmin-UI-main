@@ -13,6 +13,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css'; // Import carousel styles
 import { BaseUrl } from 'BaseUrl';
+import { fetchBanner } from 'views/API/BannerApi';
 
 // AuthImage component to fetch images with authentication
 const AuthImage = ({ filePath }) => {
@@ -66,40 +67,6 @@ const AuthImage = ({ filePath }) => {
     );
 };
 
-const fetchBanner = async (headers) => {
-    try {
-        const response = await fetch(`${BaseUrl}/bookmystarsadmin/advertisement/v1/queryAllAdvertisement`, {
-            method: 'GET',
-            headers: headers
-        });
-        if (!response.ok) {
-            if (response.status === 404) {
-                console.warn('Banner endpoint not found (404). The endpoint might not exist on the server.');
-            }
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching banner data:', error);
-        if (error.message.includes('404')) {
-            console.warn('Trying alternative endpoint...');
-            // Try alternative endpoint if queryAllAdvertisement doesn't exist
-            try {
-                const altResponse = await fetch(`${BaseUrl}/bookmystarsadmin/advertisement/v1/getAllAdvertisementByPagination/0/100`, {
-                    method: 'GET',
-                    headers: headers
-                });
-                if (altResponse.ok) {
-                    const data = await altResponse.json();
-                    return data.content || data.data || data;
-                }
-            } catch (altError) {
-                console.error('Alternative endpoint also failed:', altError);
-            }
-        }
-        return [];
-    }
-};
 
 const Banner = () => {
     const [advertisement, setAdvertisement] = useState([]);
@@ -115,7 +82,11 @@ const Banner = () => {
         const FetchData = async () => {
             setLoading(true);
             try {
-                const fetchedData = await fetchBanner(headers);
+                const response = await fetchBanner(0, 10, headers);
+                // Handle paginated response structure
+                const responseData = response.data;
+                const fetchedData = responseData.content || [];
+                
                 if (fetchedData.length > 0) {
                     const tableData = fetchedData.map((p) => ({
                         advertisementId: p.advertisementId,
@@ -127,6 +98,7 @@ const Banner = () => {
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
+                setAdvertisement([]);
             } finally {
                 setLoading(false);
             }
