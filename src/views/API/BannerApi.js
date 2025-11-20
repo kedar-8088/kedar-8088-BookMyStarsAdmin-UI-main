@@ -5,7 +5,7 @@ import { BaseUrl } from 'BaseUrl';
 export const fetchBanner = async (pageNumber = 0, pageSize = 10, headers) => {
     return await axios({
         method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/advertisement/v1/getAllAdvertisementByPagination/${pageNumber}/${pageSize}?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        url: `${BaseUrl}/bookmystarsadmin/advertisement/v1/getAllAdvertisementByPagination/${pageNumber}/${pageSize}`,
         headers: headers
     });
 };

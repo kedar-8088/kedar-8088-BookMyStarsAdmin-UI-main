@@ -42,6 +42,9 @@ const AuthImage = ({ filePath }) => {
                 setSrc(imageUrl);
             } catch (error) {
                 console.error('Error fetching image:', error);
+                if (error.response?.status === 404) {
+                    console.warn(`Image not found: ${filePath}`);
+                }
                 setSrc(''); // Optionally set a placeholder image here
             }
         };
@@ -105,8 +108,6 @@ const Banner = () => {
         'Content-Type': 'application/json',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
     };
-
-    const ImageUrl = `${BaseUrl}/file/downloadFile/?filePath=`;
 
     const FetchData = async () => {
         try {

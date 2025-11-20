@@ -35,6 +35,9 @@ const AuthImage = ({ filePath }) => {
                 setSrc(imageUrl);
             } catch (error) {
                 console.error('Error fetching image:', error);
+                if (error.response?.status === 404) {
+                    console.warn(`Image not found: ${filePath}`);
+                }
                 setSrc('');
             }
         };
@@ -70,11 +73,30 @@ const fetchBanner = async (headers) => {
             headers: headers
         });
         if (!response.ok) {
+            if (response.status === 404) {
+                console.warn('Banner endpoint not found (404). The endpoint might not exist on the server.');
+            }
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return await response.json();
     } catch (error) {
         console.error('Error fetching banner data:', error);
+        if (error.message.includes('404')) {
+            console.warn('Trying alternative endpoint...');
+            // Try alternative endpoint if queryAllAdvertisement doesn't exist
+            try {
+                const altResponse = await fetch(`${BaseUrl}/bookmystarsadmin/advertisement/v1/getAllAdvertisementByPagination/0/100`, {
+                    method: 'GET',
+                    headers: headers
+                });
+                if (altResponse.ok) {
+                    const data = await altResponse.json();
+                    return data.content || data.data || data;
+                }
+            } catch (altError) {
+                console.error('Alternative endpoint also failed:', altError);
+            }
+        }
         return [];
     }
 };
