@@ -35,7 +35,22 @@ export const addCountry = async (data, headers) => {
         }
     } catch (error) {
         console.error('Error adding country:', error);
-        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to add country';
+        console.error('Error response data:', error?.response?.data);
+        
+        // Extract error message from various possible response structures
+        let errorMessage = 'Failed to add country';
+        if (error?.response?.data) {
+            const errorData = error.response.data;
+            // Try different possible error message locations
+            errorMessage = errorData.message || 
+                         errorData.error || 
+                         errorData.body?.message ||
+                         errorData.body?.error ||
+                         (typeof errorData === 'string' ? errorData : errorMessage);
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
         Swal.fire('Error', errorMessage, 'error');
     }
 };

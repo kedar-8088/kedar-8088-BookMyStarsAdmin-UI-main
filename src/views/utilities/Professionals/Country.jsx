@@ -197,7 +197,7 @@ const Country = () => {
                         countryCode: userdata.countryCode?.trim() || '',
                         isActive: Boolean(userdata.isActive),
                         updatedBy: user?.userId ? {
-                            userId: parseInt(user.userId),
+                            userId: parseInt(user.userId, 10),
                             userName: user.userName || user.username || 'admin'
                         } : {
                             userId: 1,
@@ -228,7 +228,7 @@ const Country = () => {
                         countryCode: userdata.countryCode?.trim() || '',
                         isActive: Boolean(userdata.isActive),
                         insertedBy: user?.userId ? {
-                            userId: user.userId,
+                            userId: parseInt(user.userId, 10),
                             userName: user.userName || user.username || 'admin'
                         } : {
                             userId: 1,

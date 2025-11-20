@@ -200,7 +200,6 @@ const Skills = () => {
                         skillDescription: userdata.skillDescription?.trim() || '',
                         skillLevel: userdata.skillLevel || '',
                         isActive: true   // ensure activity status true for updates
-                        // The backend should handle updatedBy fields as needed
                     };
                     const result = await updateSkill(updatedData, headers);
                     if (result?.success) {
@@ -211,9 +210,9 @@ const Skills = () => {
                         skillName: userdata.skillName?.trim() || '',
                         skillDescription: userdata.skillDescription?.trim() || '',
                         skillLevel: userdata.skillLevel || '',
-                        isActive: true  // ensure activity status true for add
-                        // The backend should handle insertedBy fields as needed
+                        isActive: Boolean(userdata.isActive)
                     };
+                    console.log('Sending add data:', newData);
                     await addSkill(newData, headers);
                 }
                 setUserData({ skillName: '', skillDescription: '', skillLevel: '', isActive: true });

@@ -12,21 +12,11 @@ export const fetchSkills = async (headers, pageNumber = 0, pageSize = 10) => {
 
 export const addSkill = async (data, headers) => {
     try {
-        // Create a minimal request payload to avoid Hibernate proxy serialization issues
-        const requestData = {
-            skillName: data.skillName,
-            skillDescription: data.skillDescription,
-            skillLevel: data.skillLevel,
-            isActive: true // Always save as active (for addSkill)
-        };
-
-        console.log('Creating skill with data:', requestData);
-
         const res = await axios({
             method: 'POST',
             url: `${BaseUrl}/bookmystarsadmin/skill/v1/create`,
             headers,
-            data: requestData
+            data: data
         });
 
         // Handle different response structures
@@ -45,7 +35,22 @@ export const addSkill = async (data, headers) => {
         }
     } catch (error) {
         console.error('Error adding skill:', error);
-        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to add skill';
+        console.error('Error response data:', error?.response?.data);
+        
+        // Extract error message from various possible response structures
+        let errorMessage = 'Failed to add skill';
+        if (error?.response?.data) {
+            const errorData = error.response.data;
+            // Try different possible error message locations
+            errorMessage = errorData.message || 
+                         errorData.error || 
+                         errorData.body?.message ||
+                         errorData.body?.error ||
+                         (typeof errorData === 'string' ? errorData : errorMessage);
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
         Swal.fire('Error', errorMessage, 'error');
     }
 };
