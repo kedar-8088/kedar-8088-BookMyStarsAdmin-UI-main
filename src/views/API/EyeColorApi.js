@@ -103,17 +103,39 @@ export const updateEyeColor = async (updatedData, headers) => {
         }
     } catch (error) {
         console.error('Error updating eye color:', error);
+        console.error('Error response data:', error?.response?.data);
+        console.error('Error status:', error?.response?.status);
         
         let errorMessage = 'Failed to update eye color';
-        if (error?.response?.data?.error) {
-            errorMessage = error.response.data.error;
-        } else if (error?.response?.data?.message) {
-            errorMessage = error.response.data.message;
+        
+        // Extract error message from various possible response structures
+        if (error?.response?.data) {
+            const errorData = error.response.data;
+            
+            // Check for database/constraint errors
+            if (errorData.error && typeof errorData.error === 'string') {
+                if (errorData.error.includes('foreign key constraint')) {
+                    errorMessage = 'Database error: Invalid user reference. Please contact administrator.';
+                } else if (errorData.error.includes('violates foreign key constraint')) {
+                    errorMessage = 'Database error: The referenced user does not exist. Please contact administrator.';
+                } else {
+                    errorMessage = errorData.error;
+                }
+            } else if (errorData.message) {
+                errorMessage = errorData.message;
+            } else if (errorData.body?.error) {
+                errorMessage = errorData.body.error;
+            } else if (errorData.body?.message) {
+                errorMessage = errorData.body.message;
+            } else if (typeof errorData === 'string') {
+                errorMessage = errorData;
+            }
         } else if (error?.message) {
             errorMessage = error.message;
         }
         
         Swal.fire('Error', errorMessage, 'error');
+        throw error; // Re-throw to let the calling component handle it
     }
 };
 

@@ -170,8 +170,12 @@ const EyeColor = () => {
             if (fetchedData && Array.isArray(fetchedData)) {
                 const tableData = fetchedData.map((p) => {
                     // Handle isActive field similar to other components
-                    const isActiveValue = p.isActive !== undefined ? p.isActive : p.active !== undefined ? p.active : true;
-                    console.log(`Eye Color ${p.eyeColorName} - isActive field: ${p.isActive}, active field: ${p.active}, final value: ${isActiveValue}`);
+                    // Check for isActive, active, or default to true
+                    const isActiveValue = p.isActive !== undefined 
+                        ? Boolean(p.isActive) 
+                        : p.active !== undefined 
+                        ? Boolean(p.active) 
+                        : true;
                     
                     return {
                         eyeColorId: p.eyeColorId,
@@ -236,32 +240,22 @@ const EyeColor = () => {
         } else {
             try {
                 if (editMode) {
+                    // Only send the fields that are actually needed for the update
+                    // The backend should handle updatedBy from the authenticated user in headers
                     const updatedData = {
                         eyeColorId: eyeColorId,
                         eyeColorName: userdata.eyeColorName?.trim() || '',
                         eyeColorDescription: userdata.eyeColorDescription?.trim() || '',
-                        isActive: Boolean(userdata.isActive),
-                        updatedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        isActive: Boolean(userdata.isActive)
                     };
                     await updateEyeColor(updatedData, headers);
                 } else {
+                    // Only send the fields that are actually needed for creation
+                    // The backend should handle insertedBy from the authenticated user in headers
                     const newData = {
                         eyeColorName: userdata.eyeColorName?.trim() || '',
                         eyeColorDescription: userdata.eyeColorDescription?.trim() || '',
-                        isActive: Boolean(userdata.isActive),
-                        insertedBy: user?.userId ? {
-                            userId: user.userId,
-                            userName: user.userName || user.username || 'admin'
-                        } : {
-                            userId: 1,
-                            userName: 'admin'
-                        }
+                        isActive: Boolean(userdata.isActive)
                     };
                     await addEyeColor(newData, headers);
                 }
