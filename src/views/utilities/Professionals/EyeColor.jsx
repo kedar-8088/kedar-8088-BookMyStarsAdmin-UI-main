@@ -54,6 +54,60 @@ const columns = [
     { id: 'actions', label: 'Actions', align: 'right' }
 ];
 
+// Color mapping function to convert color names to hex values
+const getEyeColorValue = (colorName) => {
+    if (!colorName) return '#9E9E9E'; // Default gray
+    
+    const colorMap = {
+        // Standard colors
+        'black': '#2C2C2C',
+        'brown': '#8B4513',
+        'hazel': '#C9A961',
+        'amber': '#FFBF00',
+        'blue': '#2196F3',
+        'green': '#4CAF50',
+        'gray': '#9E9E9E',
+        'grey': '#9E9E9E',
+        'red': '#F44336',
+        'violet': '#9C27B0',
+        'purple': '#9C27B0',
+        'yellow': '#FFEB3B',
+        'orange': '#FF9800',
+        'pink': '#E91E63',
+        'white': '#F5F5F5',
+        
+        // Variations
+        'light blue': '#64B5F6',
+        'dark blue': '#1976D2',
+        'light brown': '#A0522D',
+        'dark brown': '#5D4037',
+        'light green': '#81C784',
+        'dark green': '#388E3C',
+        'light gray': '#BDBDBD',
+        'dark gray': '#616161',
+        'light grey': '#BDBDBD',
+        'dark grey': '#616161',
+    };
+    
+    // Normalize color name: lowercase and trim
+    const normalizedName = colorName.toLowerCase().trim();
+    
+    // Try exact match first
+    if (colorMap[normalizedName]) {
+        return colorMap[normalizedName];
+    }
+    
+    // Try partial match (e.g., "light blue" contains "blue")
+    for (const [key, value] of Object.entries(colorMap)) {
+        if (normalizedName.includes(key) || key.includes(normalizedName)) {
+            return value;
+        }
+    }
+    
+    // If no match found, return gray as default
+    return '#9E9E9E';
+};
+
 const EyeColor = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -380,14 +434,30 @@ const EyeColor = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                     <Avatar
                                         sx={{
-                                            bgcolor: 'rgba(1, 87, 155, 0.2)',
+                                            bgcolor: getEyeColorValue(eyeColor.eyeColorName),
                                             mr: 2,
-                                            width: 40,
-                                            height: 40,
-                                            color: '#01579B'
+                                            width: 50,
+                                            height: 50,
+                                            border: '3px solid',
+                                            borderColor: eyeColor.isActive === 'Active' ? '#4caf50' : '#f44336',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                                         }}
                                     >
-                                        <Visibility />
+                                        <Box
+                                            sx={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: '50%',
+                                                backgroundColor: getEyeColorValue(eyeColor.eyeColorName),
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            {eyeColor.isActive === 'Active' && (
+                                                <CheckCircle sx={{ color: 'white', fontSize: '20px', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
+                                            )}
+                                        </Box>
                                     </Avatar>
                                     <Box>
                                         <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0.5, color: '#01579B' }}>
@@ -573,6 +643,37 @@ const EyeColor = () => {
                                                     >
                                                         {row[column.id]}
                                                     </Typography>
+                                                ) : column.id === 'eyeColorName' ? (
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Box
+                                                            sx={{
+                                                                width: isMobile ? 24 : 30,
+                                                                height: isMobile ? 24 : 30,
+                                                                borderRadius: '50%',
+                                                                backgroundColor: getEyeColorValue(row.eyeColorName),
+                                                                border: '2px solid',
+                                                                borderColor: row.isActive === 'Active' ? '#4caf50' : '#f44336',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                flexShrink: 0
+                                                            }}
+                                                        >
+                                                            {row.isActive === 'Active' && (
+                                                                <CheckCircle sx={{ color: 'white', fontSize: isMobile ? '14px' : '16px', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
+                                                            )}
+                                                        </Box>
+                                                        <Typography 
+                                                            variant="body2" 
+                                                            sx={{ 
+                                                                fontSize: isMobile ? 12 : 14,
+                                                                fontWeight: 500
+                                                            }}
+                                                        >
+                                                            {row[column.id]}
+                                                        </Typography>
+                                                    </Box>
                                                 ) : (
                                                     <Typography 
                                                         variant="body2" 
@@ -690,16 +791,40 @@ const EyeColor = () => {
                 <Box component="form" onSubmit={postData} noValidate sx={{ p: { xs: 2, sm: 3 } }}>
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Eye Color Name"
-                                name="eyeColorName"
-                                value={userdata.eyeColorName}
-                                onChange={changeHandler}
-                                error={!!errors.eyeColorName}
-                                helperText={errors.eyeColorName}
-                                placeholder="e.g., Brown, Blue, Green, Hazel"
-                            />
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Eye Color Name"
+                                    name="eyeColorName"
+                                    value={userdata.eyeColorName}
+                                    onChange={changeHandler}
+                                    error={!!errors.eyeColorName}
+                                    helperText={errors.eyeColorName}
+                                    placeholder="e.g., Brown, Blue, Green, Hazel"
+                                />
+                                {userdata.eyeColorName && (
+                                    <Box
+                                        sx={{
+                                            width: 60,
+                                            height: 60,
+                                            borderRadius: '50%',
+                                            backgroundColor: getEyeColorValue(userdata.eyeColorName),
+                                            border: '3px solid',
+                                            borderColor: userdata.isActive ? '#4caf50' : '#f44336',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            mt: 1,
+                                            flexShrink: 0
+                                        }}
+                                    >
+                                        {userdata.isActive && (
+                                            <CheckCircle sx={{ color: 'white', fontSize: '24px', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
+                                        )}
+                                    </Box>
+                                )}
+                            </Box>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
