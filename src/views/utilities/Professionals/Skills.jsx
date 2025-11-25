@@ -99,28 +99,89 @@ const Skills = () => {
         }
     };
 
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    const headers = {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + user?.accessToken
+    const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+    
+    // Helper function to create properly formatted headers
+    const getAuthHeaders = () => {
+        const currentUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+        if (!currentUser || !currentUser.accessToken) {
+            return null;
+        }
+        const token = currentUser.accessToken;
+        const tokenType = currentUser.tokenType || 'Bearer';
+        // Check if token already includes 'Bearer'
+        const authToken = token.startsWith('Bearer ') ? token : `${tokenType} ${token}`;
+        
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': authToken
+        };
     };
 
     const FetchData = async () => {
         try {
-            // Check if user is authenticated
-            if (!user || !user.accessToken) {
+            // Check if user is authenticated and get headers
+            const authHeaders = getAuthHeaders();
+            if (!authHeaders) {
                 console.error('User not authenticated');
-                Swal.fire('Error', 'Please login to continue', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Authentication Required',
+                    text: 'Please login to continue',
+                    confirmButtonText: 'Go to Login'
+                }).then(() => {
+                    sessionStorage.removeItem('user');
+                    window.location.href = '/';
+                });
                 return;
             }
 
-            const res = await fetchSkills(headers, page, rowsPerPage);
+            const res = await fetchSkills(authHeaders, page, rowsPerPage);
 
-            // Support both possible response shapes: { body: { data } } or { data }
-            const responseBody = res?.data?.body ?? res?.data;
-            const dataNode = responseBody?.data;
-            const fetchedData = dataNode?.content || dataNode?.skills || dataNode || [];
-            const totalCountFromApi = dataNode?.totalElements || dataNode?.totalCount || Array.isArray(fetchedData) ? fetchedData.length : 0;
+            console.log('=== SKILLS FETCH DEBUG ===');
+            console.log('Full API response:', res);
+            console.log('Response data:', res.data);
+
+            // Handle the response structure:
+            // {
+            //     "code": 200,
+            //     "status": "SUCCESS",
+            //     "message": "Skills retrieved successfully",
+            //     "error": "",
+            //     "data": {
+            //         "totalPages": 0,
+            //         "totalElements": 0,
+            //         "content": [],
+            //         ...
+            //     }
+            // }
+            const responseData = res?.data;
+            
+            // Check if response has the expected structure
+            let fetchedData = [];
+            let totalCountFromApi = 0;
+            
+            if (responseData) {
+                // Direct structure: { code, status, message, error, data: { content, totalElements } }
+                if (responseData.data && typeof responseData.data === 'object') {
+                    fetchedData = responseData.data.content || responseData.data.skills || [];
+                    totalCountFromApi = responseData.data.totalElements || 0;
+                }
+                // Alternative structure: { body: { data: { content, totalElements } } }
+                else if (responseData.body?.data) {
+                    const dataNode = responseData.body.data;
+                    fetchedData = dataNode.content || dataNode.skills || Array.isArray(dataNode) ? dataNode : [];
+                    totalCountFromApi = dataNode.totalElements || dataNode.totalCount || (Array.isArray(dataNode) ? dataNode.length : 0);
+                }
+                // Fallback: check if data is directly an array
+                else if (Array.isArray(responseData)) {
+                    fetchedData = responseData;
+                    totalCountFromApi = responseData.length;
+                }
+            }
+
+            console.log('Fetched data:', fetchedData);
+            console.log('Total count from API:', totalCountFromApi);
 
             if (fetchedData && Array.isArray(fetchedData)) {
                 const tableData = fetchedData.map((p) => {
@@ -147,13 +208,39 @@ const Skills = () => {
                 // Also update skill count from the same data
                 setSkillCount(typeof totalCountFromApi === 'number' ? totalCountFromApi : 0);
             } else {
+                console.warn('No valid data found in response');
                 setSkills([]);
                 setTotalCount(0);
                 setSkillCount(0);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-            Swal.fire('Error', 'Failed to load skills. Please try again.', 'error');
+            
+            // Handle 401 Unauthorized errors
+            if (error?.response?.status === 401) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Session Expired',
+                    text: 'Your session has expired. Please login again.',
+                    confirmButtonText: 'Go to Login'
+                }).then(() => {
+                    sessionStorage.removeItem('user');
+                    window.location.href = '/';
+                });
+                return;
+            }
+            
+            // Handle other errors
+            let errorMessage = 'Failed to load skills. Please try again.';
+            if (error?.response?.status === 403) {
+                errorMessage = 'You do not have permission to access skills.';
+            } else if (error?.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error?.message) {
+                errorMessage = error.message;
+            }
+            
+            Swal.fire('Error', errorMessage, 'error');
             setSkills([]);
             setTotalCount(0);
             setSkillCount(0);
@@ -193,6 +280,14 @@ const Skills = () => {
             setErrors(formErrors);
         } else {
             try {
+                const authHeaders = getAuthHeaders();
+                if (!authHeaders) {
+                    Swal.fire('Error', 'Authentication required. Please login again.', 'error');
+                    sessionStorage.removeItem('user');
+                    window.location.href = '/';
+                    return;
+                }
+                
                 if (editMode) {
                     const updatedData = {
                         skillId: skillId,
@@ -201,7 +296,7 @@ const Skills = () => {
                         skillLevel: userdata.skillLevel || '',
                         isActive: true   // ensure activity status true for updates
                     };
-                    const result = await updateSkill(updatedData, headers);
+                    const result = await updateSkill(updatedData, authHeaders);
                     if (result?.success) {
                         Swal.fire('Success', result.message, 'success');
                     }
@@ -213,7 +308,7 @@ const Skills = () => {
                         isActive: Boolean(userdata.isActive)
                     };
                     console.log('Sending add data:', newData);
-                    await addSkill(newData, headers);
+                    await addSkill(newData, authHeaders);
                 }
                 setUserData({ skillName: '', skillDescription: '', skillLevel: '', isActive: true });
                 setRefreshTrigger((prev) => !prev);
@@ -286,7 +381,14 @@ const Skills = () => {
         setEditMode(true);
         setOpen(true);
         try {
-            const res = await getSkillById(skillId, headers);
+            const authHeaders = getAuthHeaders();
+            if (!authHeaders) {
+                Swal.fire('Error', 'Authentication required. Please login again.', 'error');
+                sessionStorage.removeItem('user');
+                window.location.href = '/';
+                return;
+            }
+            const res = await getSkillById(skillId, authHeaders);
             // Support both possible response shapes: { body: { data } } or { data }
             const responseBody = res?.data?.body ?? res?.data;
             const det = responseBody?.data || responseBody;
@@ -324,7 +426,14 @@ const Skills = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await deleteSkill(skillId, headers);
+                    const authHeaders = getAuthHeaders();
+                    if (!authHeaders) {
+                        Swal.fire('Error', 'Authentication required. Please login again.', 'error');
+                        sessionStorage.removeItem('user');
+                        window.location.href = '/';
+                        return;
+                    }
+                    await deleteSkill(skillId, authHeaders);
                     setRefreshTrigger((prev) => !prev);
                     Swal.fire({
                         title: 'Deleted!',

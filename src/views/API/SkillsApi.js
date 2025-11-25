@@ -2,12 +2,69 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { BaseUrl } from 'BaseUrl';
 
+const getAuthHeaders = () => {
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    console.log('User data in getAuthHeaders:', user);
+
+    const token = user?.accessToken;
+    const tokenType = user?.tokenType || 'Bearer';
+
+    if (!token) {
+        throw new Error('No authentication token available');
+    }
+
+    // Check if the token already includes 'Bearer'
+    const authToken = token.startsWith('Bearer ') ? token : `${tokenType} ${token}`;
+
+    console.log('Generated auth token:', authToken);
+
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+    };
+};
+
 export const fetchSkills = async (headers, pageNumber = 0, pageSize = 10) => {
-    return await axios({
-        method: 'get',
-        url: `${BaseUrl}/bookmystarsadmin/skill/v1/list?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-        headers: headers
-    });
+    try {
+        // Validate and normalize pagination parameters
+        const validPageNumber = Math.max(0, parseInt(pageNumber) || 0);
+        const validPageSize = Math.max(1, parseInt(pageSize) || 10);
+
+        // Use getAuthHeaders to ensure proper token formatting
+        const authHeaders = getAuthHeaders();
+
+        console.log('Fetch Skills Request:', {
+            url: `${BaseUrl}/bookmystarsadmin/skill/v1/list`,
+            pageNumber: validPageNumber,
+            pageSize: validPageSize,
+            hasAuth: !!authHeaders.Authorization
+        });
+
+        const res = await axios({
+            method: 'get',
+            url: `${BaseUrl}/bookmystarsadmin/skill/v1/list?pageNumber=${validPageNumber}&pageSize=${validPageSize}`,
+            headers: authHeaders
+        });
+
+        console.log('Skills fetch response:', res?.data);
+        return res;
+    } catch (error) {
+        console.error('Error fetching skills:', error);
+        console.error('Error response:', error?.response?.data);
+        console.error('Error status:', error?.response?.status);
+        
+        // Handle 401 Unauthorized - redirect to login
+        if (error?.response?.status === 401) {
+            console.warn('Unauthorized access - token may be expired or invalid');
+            sessionStorage.removeItem('user');
+            if (window.location.pathname !== '/') {
+                window.location.href = '/';
+            }
+        }
+        
+        // Re-throw to let caller handle it
+        throw error;
+    }
 };
 
 export const addSkill = async (data, headers) => {
