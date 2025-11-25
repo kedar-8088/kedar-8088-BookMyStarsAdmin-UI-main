@@ -13,6 +13,22 @@
 
   ## more info on configuring this file: https://ntl.fyi/file-based-build-config
 
+## NOTE: CORS Configuration Required
+## The backend at https://kwinwsproducts.cloudjiffy.net needs to allow CORS from:
+## - https://bookmystarsadmin-ui-main.netlify.app
+## 
+## Backend should include these headers:
+## Access-Control-Allow-Origin: https://bookmystarsadmin-ui-main.netlify.app
+## Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+## Access-Control-Allow-Headers: Content-Type, Authorization
+## 
+## Alternatively, if you want to use Netlify proxy (uncomment below and update BaseUrl.js to use '/api'):
+## [[redirects]]
+##   from = "/api/*"
+##   to = "https://kwinwsproducts.cloudjiffy.net/:splat"
+##   status = 200
+##   force = true
+
 ## Redirect all routes to index.html for Single Page Application (SPA) routing
 ## This ensures React Router handles all client-side routes
 [[redirects]]
