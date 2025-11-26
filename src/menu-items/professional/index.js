@@ -1,7 +1,7 @@
-import professional from './professional';
+import { dashboard, professional } from './professional';
 
 const menuItems = {
-    items: [professional]
+    items: [dashboard, professional]
 };
 
 export default menuItems;

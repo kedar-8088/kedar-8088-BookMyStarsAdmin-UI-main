@@ -114,13 +114,13 @@ const MainRoutes = {
     errorElement: <CustomErrorElement />,
 
     children: [
-        { path: '/', element: <Login />, errorElement: <CustomErrorElement /> },
-        { path: '/register', element: <Register />, errorElement: <CustomErrorElement /> },
-        { path: '/forgot-password', element: <ForgotPassword />, errorElement: <CustomErrorElement /> },
-        { path: '/verify-otp', element: <VerifyOtp />, errorElement: <CustomErrorElement /> },
-        { path: '/reset-password', element: <ResetPassword />, errorElement: <CustomErrorElement /> },
+        { index: true, element: <Login />, errorElement: <CustomErrorElement /> },
+        { path: 'register', element: <Register />, errorElement: <CustomErrorElement /> },
+        { path: 'forgot-password', element: <ForgotPassword />, errorElement: <CustomErrorElement /> },
+        { path: 'verify-otp', element: <VerifyOtp />, errorElement: <CustomErrorElement /> },
+        { path: 'reset-password', element: <ResetPassword />, errorElement: <CustomErrorElement /> },
         {
-            path: '/',
+            path: '',
             element: <ProtectedRoute element={<MainLayout />} />,
             errorElement: <CustomErrorElement />,
             children: [

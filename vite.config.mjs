@@ -24,18 +24,7 @@ export default defineConfig({
   define: {
     global: 'window'
   },
-  // resolve: {
-  //   // alias: [
-  //   //   {
-  //   //     find: /^~(.+)/,
-  //   //     replacement: path.join(process.cwd(), 'node_modules/$1')
-  //   //   },
-  //   //   {
-  //   //     find: /^src(.+)/,
-  //   //     replacement: path.join(process.cwd(), 'src/$1')
-  //   //   }
-  //   // ]
-  // },
+
   server: {
     // this ensures that the browser opens upon server start
     open: true,
@@ -62,8 +51,7 @@ export default defineConfig({
           react: ['react', 'react-dom'],
           mui: ['@mui/material', '@mui/icons-material', '@mui/system', '@mui/utils'],
           vendor: ['axios', 'lodash'],
-        },
-        chunkSizeWarningLimit: 1000, 
+        }
       },
       external: [],
       maxParallelFileOps: 1,

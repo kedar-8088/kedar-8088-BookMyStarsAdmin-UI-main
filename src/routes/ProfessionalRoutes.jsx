@@ -83,6 +83,7 @@ const CustomErrorElement = ({ error }) => {
 
 // professional routing
 const ProfessionalDefault = Loadable(lazy(() => import('views/professional')));
+const ProfessionalBanner = Loadable(lazy(() => import('views/professional/Banner')));
 const ProfessionalCategory = Loadable(lazy(() => import('views/utilities/Professionals/Category')));
 const ProfessionalCountry = Loadable(lazy(() => import('views/utilities/Professionals/Country')));
 const ProfessionalCity = Loadable(lazy(() => import('views/utilities/Professionals/City')));
@@ -98,6 +99,7 @@ const ProfessionalShoeSize = Loadable(lazy(() => import('views/utilities/Profess
 const ProfessionalSkinColor = Loadable(lazy(() => import('views/utilities/Professionals/SkinColor')));
 const ProfessionalManagement = Loadable(lazy(() => import('views/professional/ProfessionalManagement')));
 const ProfessionalVerification = Loadable(lazy(() => import('views/professional/Verification')));
+const ProfessionalPayments = Loadable(lazy(() => import('views/professional/Payments')));
 const ProfessionalSettings = Loadable(lazy(() => import('views/professional/Settings')));
 
 const ProfessionalRoutes = {
@@ -105,6 +107,7 @@ const ProfessionalRoutes = {
     errorElement: <CustomErrorElement />,
     children: [
         { path: '', element: <ProfessionalDefault />, errorElement: <CustomErrorElement /> },
+        { path: 'banner', element: <ProfessionalBanner />, errorElement: <CustomErrorElement /> },
         { path: 'category', element: <ProfessionalCategory />, errorElement: <CustomErrorElement /> },
         { path: 'country', element: <ProfessionalCountry />, errorElement: <CustomErrorElement /> },
         { path: 'city', element: <ProfessionalCity />, errorElement: <CustomErrorElement /> },
@@ -121,6 +124,7 @@ const ProfessionalRoutes = {
         { path: 'skin-color', element: <ProfessionalSkinColor />, errorElement: <CustomErrorElement /> },
         { path: 'management', element: <ProfessionalManagement />, errorElement: <CustomErrorElement /> },
         { path: 'verification', element: <ProfessionalVerification />, errorElement: <CustomErrorElement /> },
+        { path: 'payments', element: <ProfessionalPayments />, errorElement: <CustomErrorElement /> },
         { path: 'settings', element: <ProfessionalSettings />, errorElement: <CustomErrorElement /> }
     ]
 };

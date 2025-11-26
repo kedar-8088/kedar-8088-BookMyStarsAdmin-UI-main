@@ -1,4 +1,5 @@
 // assets
+import { IconDashboard, IconLayoutDashboard } from '@tabler/icons-react';
 import {
     IconTypography,
     IconPalette,
@@ -15,7 +16,8 @@ import {
 } from '@tabler/icons-react';
 
 // constant
-const icons = {
+const icons = { IconLayoutDashboard, IconDashboard };
+const pageIcons = {
     IconTypography,
     IconPalette,
     IconShadow,
@@ -29,30 +31,36 @@ const icons = {
     IconEye
 };
 
-// ==============================|| PROFESSIONAL MENU ITEMS ||============================== //
+// ==============================|| PROFESSIONAL DASHBOARD MENU ITEMS ||============================== //
 
-const professional = {
-    id: 'professional',
+const dashboard = {
+    id: 'professional_dashboard',
     title: 'Professional',
     type: 'group',
     children: [
         {
-            id: 'professional_management',
-            title: 'Professional Management',
+            id: 'professional_default',
+            title: 'Dashboard',
             type: 'item',
-            url: '/professional/management',
-            icon: icons.IconUser,
+            url: '/professional',
+            icon: icons.IconLayoutDashboard,
             breadcrumbs: false
-        },
-        {
-            id: 'divider',
-            type: 'divider'
-        },
+        }
+    ]
+};
+
+// ==============================|| PROFESSIONAL PAGES MENU ITEMS ||============================== //
+
+const professional = {
+    id: 'professional_pages',
+    title: 'Pages',
+    type: 'group',
+    children: [
         {
             id: 'professional_masters',
             title: 'Masters',
             type: 'collapse',
-            icon: icons.IconUsers,
+            icon: pageIcons.IconWindmill,
             children: [
                 {
                     id: 'professional_body_type',
@@ -149,22 +157,15 @@ const professional = {
             ]
         },
         {
-            id: 'professional_verification',
-            title: 'Verification',
-            type: 'item',
-            url: '/professional/verification',
-            icon: icons.IconCertificate,
-            breadcrumbs: false
-        },
-        {
             id: 'professional_settings',
             title: 'Settings',
             type: 'item',
             url: '/professional/settings',
-            icon: icons.IconSettings,
+            icon: pageIcons.IconSettings,
             breadcrumbs: false
         }
     ]
 };
 
-export default professional;
+export { dashboard, professional };
+export default { dashboard, professional };

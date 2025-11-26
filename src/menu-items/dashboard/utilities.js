@@ -50,15 +50,15 @@ const utilities = {
                 }
             ]
         },
-        {
-            id: 'company_masters',
-            title: 'Masters',
-            type: 'collapse',
-            icon: icons.IconWindmill,
-            children: [
+        // {
+        //     id: 'company_masters',
+        //     title: 'Masters',
+        //     type: 'collapse',
+        //     icon: icons.IconWindmill,
+        //     children: [
                
-            ]
-        },
+        //     ]
+        // },
 
         {
             id: 'payments',
