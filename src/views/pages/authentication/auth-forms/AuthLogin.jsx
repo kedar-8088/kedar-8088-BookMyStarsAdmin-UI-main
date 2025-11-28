@@ -34,7 +34,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 import Google from 'assets/images/icons/social-google.svg';
 import { Link } from 'react-router-dom';
-import { BaseUrl } from '../../../../BaseUrl';
+import { BaseUrl } from 'BaseUrl';
 import Swal from 'sweetalert2';
 
 // API URL

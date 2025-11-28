@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { BaseUrl } from '../../BaseUrl';
+import { BaseUrl } from 'BaseUrl';
 
 const getAuthHeaders = () => {
     const user = JSON.parse(sessionStorage.getItem('user'));
