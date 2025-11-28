@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -14,6 +15,8 @@ import NavCollapse from '../NavCollapse';
 
 const NavGroup = ({ item }) => {
     const theme = useTheme();
+    const customization = useSelector((state) => state.customization);
+    const isMini = customization.mini;
 
     // menu list collapse & items
     const items = item.children?.map((menu) => {
@@ -37,11 +40,30 @@ const NavGroup = ({ item }) => {
         <>
             <List
                 subheader={
-                    item.title && (
-                        <Typography variant="caption" sx={{ ...theme.typography.menuCaption }} display="block" gutterBottom>
+                    !isMini && item.title && (
+                        <Typography 
+                            variant="caption" 
+                            sx={{ 
+                                ...theme.typography.menuCaption,
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                px: 1.5,
+                                pt: 1.5,
+                                pb: 0.75
+                            }} 
+                            display="block"
+                        >
                             {item.title}
                             {item.caption && (
-                                <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption }} display="block" gutterBottom>
+                                <Typography 
+                                    variant="caption" 
+                                    sx={{ 
+                                        ...theme.typography.subMenuCaption,
+                                        fontSize: '0.7rem',
+                                        display: 'block',
+                                        mt: 0.25
+                                    }}
+                                >
                                     {item.caption}
                                 </Typography>
                             )}
@@ -53,7 +75,7 @@ const NavGroup = ({ item }) => {
             </List>
 
             {/* group divider */}
-            <Divider sx={{ mt: 0.25, mb: 1.25 }} />
+            {!isMini && <Divider sx={{ mt: 0.5, mb: 0.75 }} />}
         </>
     );
 };

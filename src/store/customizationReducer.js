@@ -9,7 +9,9 @@ export const initialState = {
     defaultId: 'default',
     fontFamily: config.fontFamily,
     borderRadius: config.borderRadius,
-    opened: true
+    opened: true,
+    mini: false,
+    navType: 'light' // 'light' or 'dark'
 };
 
 // ==============================|| CUSTOMIZATION REDUCER ||============================== //
@@ -37,6 +39,16 @@ const customizationReducer = (state = initialState, action) => {
             return {
                 ...state,
                 borderRadius: action.borderRadius
+            };
+        case actionTypes.SET_MINI:
+            return {
+                ...state,
+                mini: action.mini
+            };
+        case actionTypes.SET_NAV_TYPE:
+            return {
+                ...state,
+                navType: action.navType
             };
         default:
             return state;

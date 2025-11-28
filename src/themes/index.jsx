@@ -15,19 +15,21 @@ import themeTypography from './typography';
 
 export const theme = (customization) => {
     const color = colors;
+    const navType = customization?.navType || 'light';
+    const isDark = navType === 'dark';
 
     const themeOption = {
         colors: color,
-        heading: color.grey900,
-        paper: color.paper,
-        backgroundDefault: color.paper,
-        background: color.primaryLight,
-        darkTextPrimary: color.grey700,
-        darkTextSecondary: color.grey500,
-        textDark: color.grey900,
+        heading: isDark ? color.darkTextTitle : color.grey900,
+        paper: isDark ? color.darkPaper : color.paper,
+        backgroundDefault: isDark ? color.darkBackground : color.paper,
+        background: isDark ? color.darkBackground : color.primaryLight,
+        darkTextPrimary: isDark ? color.darkTextPrimary : color.grey700,
+        darkTextSecondary: isDark ? color.darkTextSecondary : color.grey500,
+        textDark: isDark ? color.darkTextTitle : color.grey900,
         menuSelected: color.secondaryDark,
         menuSelectedBack: color.secondaryLight,
-        divider: color.grey200,
+        divider: isDark ? color.darkLevel2 : color.grey200,
         customization
     };
 

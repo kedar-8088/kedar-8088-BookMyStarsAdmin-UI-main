@@ -14,13 +14,13 @@ import Sidebar from './Sidebar';
 import Customization from '../Customization';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import { SET_MENU } from 'store/actions';
-import { drawerWidth } from 'store/constant';
+import { drawerWidth, miniDrawerWidth } from 'store/constant';
 
 // assets
 import { IconChevronRight } from '@tabler/icons-react';
 import { Navigation } from '@mui/icons-material';
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'theme' })(({ theme, open }) => ({
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'theme' && prop !== 'drawerWidth' })(({ theme, open, drawerWidth }) => ({
     ...theme.typography.mainContent,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
@@ -60,10 +60,12 @@ const MainLayout = () => {
     const matchDownMd = useMediaQuery(theme.breakpoints.down('md'));
     // Handle left drawer
     const leftDrawerOpened = useSelector((state) => state.customization.opened);
+    const isMini = useSelector((state) => state.customization.mini);
     const dispatch = useDispatch();
     const handleLeftDrawerToggle = () => {
         dispatch({ type: SET_MENU, opened: !leftDrawerOpened });
     };
+    const currentDrawerWidth = isMini ? miniDrawerWidth : drawerWidth;
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -88,7 +90,7 @@ const MainLayout = () => {
             <Sidebar drawerOpen={!matchDownMd ? leftDrawerOpened : !leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
 
             {/* main content */}
-            <Main theme={theme} open={leftDrawerOpened}>
+            <Main theme={theme} open={leftDrawerOpened} drawerWidth={currentDrawerWidth}>
                 {/* breadcrumb */}
                 <Breadcrumbs separator={IconChevronRight} navigation={Navigation} icon title rightAlign />
                 <Outlet />

@@ -30,7 +30,7 @@ const NavItem = ({ item, level }) => {
 
     const Icon = item.icon;
     const itemIcon = item?.icon ? (
-        <Icon stroke={1.5} size="1.3rem" />
+        <Icon stroke={1.5} size="1.2rem" />
     ) : (
         <FiberManualRecordIcon
             sx={{
@@ -70,40 +70,60 @@ const NavItem = ({ item, level }) => {
         // eslint-disable-next-line
   }, [pathname]);
 
+    const isMini = customization.mini;
+
     return (
         <ListItemButton
             {...listItemProps}
             disabled={item.disabled}
             sx={{
                 borderRadius: `${customization.borderRadius}px`,
-                mb: 0.5,
-                alignItems: 'flex-start',
+                mb: 0.375,
+                alignItems: 'center',
+                justifyContent: isMini ? 'center' : 'flex-start',
                 backgroundColor: level > 1 ? 'transparent !important' : 'inherit',
-                py: level > 1 ? 1 : 1.25,
-                pl: `${level * 24}px`
+                py: level > 1 ? 0.75 : 0.875,
+                pl: isMini ? '8px' : `${level * 20}px`,
+                pr: isMini ? '8px' : '12px',
+                minHeight: 40
             }}
             selected={customization.isOpen.findIndex((id) => id === item.id) > -1}
         >
-            <ListItemIcon sx={{ my: 'auto', minWidth: !item?.icon ? 18 : 36 }}>{itemIcon}</ListItemIcon>
-            <ListItemText
-                primary={
-                    <Typography variant={customization.isOpen.findIndex((id) => id === item.id) > -1 ? 'h5' : 'body1'} color="inherit">
-                        {item.title}
-                    </Typography>
-                }
-                secondary={
-                    item.caption && (
-                        <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption }} display="block" gutterBottom>
-                            {item.caption}
+            <ListItemIcon 
+                sx={{ 
+                    my: 'auto', 
+                    minWidth: isMini ? 0 : (!item?.icon ? 18 : 32),
+                    justifyContent: 'center',
+                    mr: isMini ? 0 : 0.75
+                }}
+            >
+                {itemIcon}
+            </ListItemIcon>
+            {!isMini && (
+                <ListItemText
+                    primary={
+                        <Typography 
+                            variant={customization.isOpen.findIndex((id) => id === item.id) > -1 ? 'body1' : 'body2'} 
+                            color="inherit"
+                            sx={{ fontSize: '0.875rem', fontWeight: customization.isOpen.findIndex((id) => id === item.id) > -1 ? 600 : 400 }}
+                        >
+                            {item.title}
                         </Typography>
-                    )
-                }
-            />
-            {item.chip && (
+                    }
+                    secondary={
+                        item.caption && (
+                            <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption, fontSize: '0.75rem' }} display="block" gutterBottom>
+                                {item.caption}
+                            </Typography>
+                        )
+                    }
+                />
+            )}
+            {!isMini && item.chip && (
                 <Chip
                     color={item.chip.color}
                     variant={item.chip.variant}
-                    size={item.chip.size}
+                    size="small"
                     label={item.chip.label}
                     avatar={item.chip.avatar && <Avatar>{item.chip.avatar}</Avatar>}
                 />

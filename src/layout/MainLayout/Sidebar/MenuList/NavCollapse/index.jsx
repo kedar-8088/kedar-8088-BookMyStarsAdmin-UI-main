@@ -86,7 +86,7 @@ const NavCollapse = ({ menu, level }) => {
 
     const Icon = menu.icon;
     const menuIcon = menu.icon ? (
-        <Icon strokeWidth={1.5} size="1.3rem" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+        <Icon strokeWidth={1.5} size="1.2rem" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
     ) : (
         <FiberManualRecordIcon
             sx={{
@@ -97,42 +97,69 @@ const NavCollapse = ({ menu, level }) => {
         />
     );
 
+    const isMini = customization.mini;
+
     return (
         <>
             <ListItemButton
                 sx={{
                     borderRadius: `${customization.borderRadius}px`,
-                    mb: 0.5,
-                    alignItems: 'flex-start',
+                    mb: 0.375,
+                    alignItems: 'center',
+                    justifyContent: isMini ? 'center' : 'flex-start',
                     backgroundColor: level > 1 ? 'transparent !important' : 'inherit',
-                    py: level > 1 ? 1 : 1.25,
-                    pl: `${level * 24}px`
+                    py: level > 1 ? 0.75 : 0.875,
+                    pl: isMini ? '8px' : `${level * 20}px`,
+                    pr: isMini ? '8px' : '12px',
+                    minHeight: 40
                 }}
                 selected={selected === menu.id}
                 onClick={handleClick}
             >
-                <ListItemIcon sx={{ my: 'auto', minWidth: !menu.icon ? 18 : 36 }}>{menuIcon}</ListItemIcon>
-                <ListItemText
-                    primary={
-                        <Typography variant={selected === menu.id ? 'h5' : 'body1'} color="inherit" sx={{ my: 'auto' }}>
-                            {menu.title}
-                        </Typography>
-                    }
-                    secondary={
-                        menu.caption && (
-                            <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption }} display="block" gutterBottom>
-                                {menu.caption}
+                <ListItemIcon 
+                    sx={{ 
+                        my: 'auto', 
+                        minWidth: isMini ? 0 : (!menu.icon ? 18 : 32),
+                        justifyContent: 'center',
+                        mr: isMini ? 0 : 0.75
+                    }}
+                >
+                    {menuIcon}
+                </ListItemIcon>
+                {!isMini && (
+                    <ListItemText
+                        primary={
+                            <Typography 
+                                variant={selected === menu.id ? 'body1' : 'body2'} 
+                                color="inherit" 
+                                sx={{ 
+                                    my: 'auto',
+                                    fontSize: '0.875rem',
+                                    fontWeight: selected === menu.id ? 600 : 400
+                                }}
+                            >
+                                {menu.title}
                             </Typography>
-                        )
-                    }
-                />
-                {open ? (
-                    <IconChevronUp stroke={1.5} size="1rem" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
-                ) : (
-                    <IconChevronDown stroke={1.5} size="1rem" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+                        }
+                        secondary={
+                            menu.caption && (
+                                <Typography variant="caption" sx={{ ...theme.typography.subMenuCaption, fontSize: '0.75rem' }} display="block" gutterBottom>
+                                    {menu.caption}
+                                </Typography>
+                            )
+                        }
+                    />
+                )}
+                {!isMini && (
+                    open ? (
+                        <IconChevronUp stroke={1.5} size="0.9rem" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+                    ) : (
+                        <IconChevronDown stroke={1.5} size="0.9rem" style={{ marginTop: 'auto', marginBottom: 'auto' }} />
+                    )
                 )}
             </ListItemButton>
-            <Collapse in={open} timeout="auto" unmountOnExit>
+            {!isMini && (
+                <Collapse in={open} timeout="auto" unmountOnExit>
                 <List
                     component="div"
                     disablePadding
@@ -141,7 +168,7 @@ const NavCollapse = ({ menu, level }) => {
                         '&:after': {
                             content: "''",
                             position: 'absolute',
-                            left: '32px',
+                            left: '28px',
                             top: 0,
                             height: '100%',
                             width: '1px',
@@ -153,6 +180,7 @@ const NavCollapse = ({ menu, level }) => {
                     {menus}
                 </List>
             </Collapse>
+            )}
         </>
     );
 };

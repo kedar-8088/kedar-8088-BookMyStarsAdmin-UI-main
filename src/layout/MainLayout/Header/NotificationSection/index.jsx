@@ -29,6 +29,7 @@ import NotificationList from './NotificationList';
 
 // assets
 import { IconBell } from '@tabler/icons-react';
+import Badge from '@mui/material/Badge';
 
 // notification status options
 const status = [
@@ -98,27 +99,45 @@ const NotificationSection = () => {
                 }}
             >
                 <ButtonBase sx={{ borderRadius: '12px' }}>
-                    <Avatar
-                        variant="rounded"
+                    <Badge
+                        badgeContent={9}
                         sx={{
-                            ...theme.typography.commonAvatar,
-                            ...theme.typography.mediumAvatar,
-                            transition: 'all .2s ease-in-out',
-                            background: theme.palette.secondary.light,
-                            color: theme.palette.secondary.dark,
-                            '&[aria-controls="menu-list-grow"],&:hover': {
-                                background: theme.palette.secondary.dark,
-                                color: theme.palette.secondary.light
+                            '& .MuiBadge-badge': {
+                                backgroundColor: theme.palette.secondary.main,
+                                color: '#fff',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                minWidth: '18px',
+                                height: '18px',
+                                padding: '0 4px'
                             }
                         }}
-                        ref={anchorRef}
-                        aria-controls={open ? 'menu-list-grow' : undefined}
-                        aria-haspopup="true"
-                        onClick={handleToggle}
-                        color="inherit"
                     >
-                        <IconBell stroke={1.5} size="1.3rem" style={{ color: '#DA498D' }} />
-                    </Avatar>
+                        <Avatar
+                            variant="rounded"
+                            sx={{
+                                ...theme.typography.commonAvatar,
+                                ...theme.typography.mediumAvatar,
+                                transition: 'all .2s ease-in-out',
+                                background: theme.palette.secondary.light,
+                                color: theme.palette.secondary.dark,
+                                border: '1px solid',
+                                borderColor: theme.palette.secondary.light,
+                                '&[aria-controls="menu-list-grow"],&:hover': {
+                                    background: theme.palette.secondary.dark,
+                                    color: theme.palette.secondary.light,
+                                    borderColor: theme.palette.secondary.dark
+                                }
+                            }}
+                            ref={anchorRef}
+                            aria-controls={open ? 'menu-list-grow' : undefined}
+                            aria-haspopup="true"
+                            onClick={handleToggle}
+                            color="inherit"
+                        >
+                            <IconBell stroke={1.5} size="1.3rem" />
+                        </Avatar>
+                    </Badge>
                 </ButtonBase>
             </Box>
             <Popper
@@ -152,10 +171,10 @@ const NotificationSection = () => {
                                                         <Typography variant="subtitle1">All Notification</Typography>
                                                         <Chip
                                                             size="small"
-                                                            label="01"
+                                                            label="9"
                                                             sx={{
                                                                 color: theme.palette.background.default,
-                                                                bgcolor: theme.palette.warning.dark
+                                                                bgcolor: theme.palette.secondary.main
                                                             }}
                                                         />
                                                     </Stack>

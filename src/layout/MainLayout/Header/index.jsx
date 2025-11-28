@@ -5,16 +5,16 @@ import { useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
+import IconButton from '@mui/material/IconButton';
 
 // project imports
 import LogoSection from '../LogoSection';
-import SearchSection from './SearchSection';
 import NotificationSection from './NotificationSection';
 import ProfileSection from './ProfileSection';
+import ThemeToggle from './ThemeToggle';
 
 // assets
 import { IconMenu2 } from '@tabler/icons-react';
-import SwitchSection from './SwitchSection';
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -23,7 +23,23 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
     return (
         <>
-            {/* logo & toggler button */}
+            {/* hamburger menu icon - only visible on mobile */}
+            <IconButton
+                onClick={handleLeftDrawerToggle}
+                sx={{
+                    mr: 1,
+                    color: theme.palette.primary.main,
+                    display: { xs: 'flex', md: 'none' }, // Show only on mobile, hide on desktop
+                    '&:hover': {
+                        backgroundColor: theme.palette.action.hover
+                    }
+                }}
+                aria-label="open drawer"
+            >
+                <IconMenu2 stroke={1.5} size="1.5rem" />
+            </IconButton>
+
+            {/* logo */}
             <Box
                 sx={{
                     width: 228,
@@ -36,45 +52,12 @@ const Header = ({ handleLeftDrawerToggle }) => {
                 <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
                     <LogoSection />
                 </Box>
-                <ButtonBase
-                    sx={{
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        '&:hover': {
-                            background: 'none'
-                        }
-                    }}
-                >
-                    <Avatar
-                        variant="rounded"
-                        sx={{
-                            ...theme.typography.commonAvatar,
-                            ...theme.typography.mediumAvatar,
-                            transition: 'all .2s ease-in-out',
-                            background: theme.palette.secondary.light,
-                            color: ' #DA498D',
-                            '&:hover': {
-                                background: 'linear-gradient(90deg, #69247C 0%, #DA498D 100%)',
-                                color: theme.palette.secondary.light
-                            }
-                        }}
-                        onClick={handleLeftDrawerToggle}
-                        color="inherit"
-                    >
-                        <IconMenu2 stroke={1.5} size="1.3rem" />
-                    </Avatar>
-                </ButtonBase>
             </Box>
 
-            {/* header search */}
-            <SearchSection />
-            <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ flexGrow: 1 }} />
 
-            {/* notification & profile */}
-
-            <SwitchSection />
-
+            {/* theme toggle, notification & profile */}
+            <ThemeToggle />
             <NotificationSection />
             <ProfileSection />
         </>

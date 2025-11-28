@@ -19,7 +19,7 @@ import {
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
-import { IconLogout, IconSettings } from '@tabler/icons-react';
+import { IconLogout, IconSettings, IconChevronDown } from '@tabler/icons-react';
 import axios from 'axios';
 import { BaseUrl } from 'BaseUrl';
 import Swal from 'sweetalert2';
@@ -94,48 +94,67 @@ const ProfileSection = () => {
             }
         });
     };
+    // Get first letter of username for avatar
+    const getInitial = (name) => {
+        return name ? name.charAt(0).toUpperCase() : 'A';
+    };
+
     return (
         <>
-            <Chip
+            <Box
                 sx={{
-                    height: '48px',
+                    display: 'flex',
                     alignItems: 'center',
-                    borderRadius: '27px',
+                    gap: 1,
+                    ml: 2,
+                    mr: 2,
+                    cursor: 'pointer',
+                    borderRadius: '24px',
+                    px: 1,
+                    py: 0.5,
                     transition: 'all .2s ease-in-out',
-                    borderColor: '#DA498D',
-                    backgroundColor: theme.palette.primary.light,
                     '&:hover': {
-                        borderColor: theme.palette.primary.main,
-                        backgroundColor: theme.palette.primary.main,
-                        color: '#DA498D',
-                        '& svg': {
-                            stroke: '#DA498D'
-                        }
-                    },
-                    '& .MuiChip-label': {
-                        lineHeight: 0
+                        backgroundColor: theme.palette.action.hover
                     }
                 }}
-                icon={
-                    <Avatar
-                        sx={{
-                            ...theme.typography.mediumAvatar,
-                            margin: '8px 0 8px 8px !important',
-                            cursor: 'pointer'
-                        }}
-                        ref={anchorRef}
-                        aria-controls={open ? 'menu-list-grow' : undefined}
-                        aria-haspopup="true"
-                    />
-                }
-                label={<IconSettings stroke={1.5} size="1.5rem" color="#DA498D" />}
-                variant="outlined"
+                onClick={handleToggle}
                 ref={anchorRef}
                 aria-controls={open ? 'menu-list-grow' : undefined}
                 aria-haspopup="true"
-                onClick={handleToggle}
-                color="primary"
-            />
+            >
+                <Avatar
+                    sx={{
+                        width: 36,
+                        height: 36,
+                        background: 'linear-gradient(135deg, #69247C 0%, #DA498D 100%)',
+                        color: '#fff',
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {getInitial(userName)}
+                </Avatar>
+                <Typography
+                    variant="body1"
+                    sx={{
+                        fontWeight: 500,
+                        color: theme.palette.text.primary,
+                        display: { xs: 'none', sm: 'block' }
+                    }}
+                >
+                    {userName || 'admin1'}
+                </Typography>
+                <IconChevronDown
+                    stroke={1.5}
+                    size="1.2rem"
+                    style={{
+                        color: theme.palette.text.secondary,
+                        transition: 'transform 0.2s',
+                        transform: open ? 'rotate(180deg)' : 'rotate(0deg)'
+                    }}
+                />
+            </Box>
             <Popper
                 placement="bottom-end"
                 open={open}
@@ -156,57 +175,61 @@ const ProfileSection = () => {
                         <Paper>
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
-                                    <Box sx={{ p: 2, pb: 0 }}>
+                                    <Box sx={{ p: 1.5, pb: 0.5 }}>
                                         <Stack direction="row" spacing={0.5} alignItems="center">
-                                            <Typography variant="h4" sx={{ fontWeight: 400 }}>
+                                            <Typography variant="body1" sx={{ fontWeight: 400, fontSize: '0.875rem' }}>
                                                 Hello,
                                             </Typography>
-                                            <Typography component="span" variant="h4" sx={{ fontWeight: 600 }}>
+                                            <Typography component="span" variant="body1" sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                                                 {userName}
                                             </Typography>
                                         </Stack>
                                     </Box>
-                                    <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
-                                        <Box sx={{ p: 2, pt: 0 }}>
-                                            <List
-                                                component="nav"
-                                                sx={{
-                                                    width: '100%',
-                                                    maxWidth: 350,
-                                                    minWidth: 200,
-                                                    backgroundColor: theme.palette.background.paper,
-                                                    borderRadius: '10px',
-                                                    [theme.breakpoints.down('md')]: {
-                                                        minWidth: '100%'
-                                                    },
-                                                    '& .MuiListItemButton-root': {
-                                                        mt: 0.5
-                                                    }
-                                                }}
+                                    <Box sx={{ px: 1, pb: 1 }}>
+                                        <List
+                                            component="nav"
+                                            sx={{
+                                                width: '100%',
+                                                maxWidth: 220,
+                                                minWidth: 180,
+                                                backgroundColor: 'transparent',
+                                                [theme.breakpoints.down('md')]: {
+                                                    minWidth: 180,
+                                                    maxWidth: 220
+                                                },
+                                                '& .MuiListItemButton-root': {
+                                                    py: 0.75,
+                                                    px: 1,
+                                                    minHeight: 40
+                                                }
+                                            }}
+                                        >
+                                            <ListItemButton
+                                                sx={{ borderRadius: `${customization.borderRadius}px` }}
+                                                selected={selectedIndex === 0}
+                                                onClick={(event) => handleListItemClick(event, 0, '#')}
                                             >
-                                                <ListItemButton
-                                                    sx={{ borderRadius: `${customization.borderRadius}px` }}
-                                                    selected={selectedIndex === 0}
-                                                    onClick={(event) => handleListItemClick(event, 0, '#')}
-                                                >
-                                                    <ListItemIcon>
-                                                        <IconSettings stroke={1.5} size="1.3rem" style={{ color: '#DA498D' }} />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
-                                                </ListItemButton>
-                                                <ListItemButton
-                                                    sx={{ borderRadius: `${customization.borderRadius}px` }}
-                                                    selected={selectedIndex === 4}
-                                                    onClick={handleLogout}
-                                                >
-                                                    <ListItemIcon>
-                                                        <IconLogout stroke={1.5} size="1.3rem" style={{ color: '#DA498D' }} />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
-                                                </ListItemButton>
-                                            </List>
-                                        </Box>
-                                    </PerfectScrollbar>
+                                                <ListItemIcon sx={{ minWidth: 36 }}>
+                                                    <IconSettings stroke={1.5} size="1.2rem" style={{ color: '#DA498D' }} />
+                                                </ListItemIcon>
+                                                <ListItemText 
+                                                    primary={<Typography variant="body2" sx={{ fontSize: '0.875rem' }}>Account Settings</Typography>} 
+                                                />
+                                            </ListItemButton>
+                                            <ListItemButton
+                                                sx={{ borderRadius: `${customization.borderRadius}px` }}
+                                                selected={selectedIndex === 4}
+                                                onClick={handleLogout}
+                                            >
+                                                <ListItemIcon sx={{ minWidth: 36 }}>
+                                                    <IconLogout stroke={1.5} size="1.2rem" style={{ color: '#DA498D' }} />
+                                                </ListItemIcon>
+                                                <ListItemText 
+                                                    primary={<Typography variant="body2" sx={{ fontSize: '0.875rem' }}>Logout</Typography>} 
+                                                />
+                                            </ListItemButton>
+                                        </List>
+                                    </Box>
                                 </MainCard>
                             </ClickAwayListener>
                         </Paper>
