@@ -5,6 +5,7 @@ import NavGroup from './NavGroup';
 
 import dashboardMenuItems from 'menu-items/dashboard';
 import professionalMenuItems from 'menu-items/professional';
+import hiringTalentMenuItems from 'menu-items/hiring-talent';
 
 // Function to get menu items based on the current path
 const getMenuItems = (path) => {
@@ -12,6 +13,8 @@ const getMenuItems = (path) => {
         return dashboardMenuItems.items;
     } else if (path.startsWith('/professional')) {
         return professionalMenuItems.items;
+    } else if (path.startsWith('/hiring-talent')) {
+        return hiringTalentMenuItems.items;
     } else {
         return [];
     }

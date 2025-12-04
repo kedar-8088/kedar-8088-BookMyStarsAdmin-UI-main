@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchCategories, addCategory, deleteCategory, getCategoryById, updateCategory } from 'views/API/CategoryApi';
+import { fetchCategories, addCategory, deleteCategory, getCategoryById, updateCategory } from 'views/professionals API/CategoryApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect } from 'react';
 import moment from 'moment';

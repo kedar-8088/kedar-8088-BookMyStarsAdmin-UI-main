@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchSkills, addSkill, deleteSkill, getSkillById, updateSkill, getSkillCount } from 'views/API/SkillsApi';
+import { fetchSkills, addSkill, deleteSkill, getSkillById, updateSkill, getSkillCount } from 'views/professionals API/SkillsApi';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import {

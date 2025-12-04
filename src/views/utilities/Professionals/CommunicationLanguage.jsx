@@ -20,7 +20,7 @@ import {
     getCommunicationLanguageCount,
     getAllCommunicationLanguages,
     checkLanguageExists
-} from 'views/API/CommunicationLanguageApi';
+} from 'views/professionals API/CommunicationLanguageApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect } from 'react';
 import moment from 'moment';

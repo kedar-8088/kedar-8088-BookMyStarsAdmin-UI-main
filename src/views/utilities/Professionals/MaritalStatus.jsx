@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchMaritalStatuses, addMaritalStatus, deleteMaritalStatus, getMaritalStatusById, updateMaritalStatus, getMaritalStatusCount } from 'views/API/MaritalStatusApi';
+import { fetchMaritalStatuses, addMaritalStatus, deleteMaritalStatus, getMaritalStatusById, updateMaritalStatus, getMaritalStatusCount } from 'views/professionals API/MaritalStatusApi';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import {

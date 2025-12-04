@@ -98,6 +98,7 @@ const NavCollapse = ({ menu, level }) => {
     );
 
     const isMini = customization.mini;
+    const isSelected = selected === menu.id || open;
 
     return (
         <>
@@ -107,13 +108,30 @@ const NavCollapse = ({ menu, level }) => {
                     mb: 0.375,
                     alignItems: 'center',
                     justifyContent: isMini ? 'center' : 'flex-start',
-                    backgroundColor: level > 1 ? 'transparent !important' : 'inherit',
+                    backgroundColor: isSelected 
+                        ? 'rgba(105, 36, 124, 0.1)' 
+                        : level > 1 
+                            ? 'transparent !important' 
+                            : 'inherit',
                     py: level > 1 ? 0.75 : 0.875,
                     pl: isMini ? '8px' : `${level * 20}px`,
                     pr: isMini ? '8px' : '12px',
-                    minHeight: 40
+                    minHeight: 40,
+                    color: isSelected ? '#69247C' : 'inherit',
+                    '&:hover': {
+                        backgroundColor: isSelected 
+                            ? 'rgba(105, 36, 124, 0.15)' 
+                            : 'rgba(0, 0, 0, 0.04)'
+                    },
+                    '&.Mui-selected': {
+                        backgroundColor: 'rgba(105, 36, 124, 0.1) !important',
+                        color: '#69247C',
+                        '&:hover': {
+                            backgroundColor: 'rgba(105, 36, 124, 0.15) !important'
+                        }
+                    }
                 }}
-                selected={selected === menu.id}
+                selected={isSelected}
                 onClick={handleClick}
             >
                 <ListItemIcon 
@@ -121,7 +139,8 @@ const NavCollapse = ({ menu, level }) => {
                         my: 'auto', 
                         minWidth: isMini ? 0 : (!menu.icon ? 18 : 32),
                         justifyContent: 'center',
-                        mr: isMini ? 0 : 0.75
+                        mr: isMini ? 0 : 0.75,
+                        color: isSelected ? '#69247C' : 'inherit'
                     }}
                 >
                     {menuIcon}

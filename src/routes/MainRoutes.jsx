@@ -8,6 +8,7 @@ import VerifyOtp from 'views/pages/authentication3/VerifyOtp';
 import ResetPassword from 'views/pages/authentication3/ResetPassword';
 import ProtectedRoute from './ProtectedRoute';
 import ProfessionalRoutes from './ProfessionalRoutes';
+import HiringTalentRoutes from './HiringTalentRoutes';
 
 // Custom Error Component
 const CustomErrorElement = ({ error }) => {
@@ -148,7 +149,8 @@ const MainRoutes = {
                         // { path: 'success-story', element: <UtilsSuccessStory /> }
                     ]
                 },
-                ProfessionalRoutes
+                ProfessionalRoutes,
+                HiringTalentRoutes
             ]
         }
     ]
