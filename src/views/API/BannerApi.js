@@ -19,10 +19,10 @@ export const addBanner = async (data, headers) => {
             data: data
         });
 
-        if (res.data.responseCode === 201) {
+        if (res.data.code === 201 && res.data.status === 'SUCCESS') {
             Swal.fire('Success', res.data.message, 'success');
-        } else if (res.data.responseCode === 400) {
-            Swal.fire('Error', res.data.errorMessage, 'error');
+        } else {
+            Swal.fire('Error', res.data.error || res.data.message || 'An error occurred', 'error');
         }
     } catch (error) {
         Swal.fire('Error', error.message, 'error');
@@ -64,10 +64,10 @@ export const updatedAdvertise = async (updatedData, headers) => {
         data: updatedData
     })
         .then((res) => {
-            if (res.data.responseCode === 201) {
+            if (res.data.code === 201 && res.data.status === 'SUCCESS') {
                 Swal.fire('Success', res.data.message, 'success');
-            } else if (res.data.responseCode === 400) {
-                Swal.fire('Error', res.data.errorMessage, 'error');
+            } else {
+                Swal.fire('Error', res.data.error || res.data.message || 'An error occurred', 'error');
             }
         })
         .catch((error) => {

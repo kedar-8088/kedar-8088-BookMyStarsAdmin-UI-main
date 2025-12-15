@@ -44,6 +44,12 @@ const SwitchList = ({ setSelectedSwitch, setOpen }) => {
         setOpen(false);
     };
 
+    const handleLMS = () => {
+        setSelectedSwitch('LMS');
+        navigate('/lms');
+        setOpen(false);
+    };
+
     return (
         <List
             sx={{
@@ -73,6 +79,11 @@ const SwitchList = ({ setSelectedSwitch, setOpen }) => {
             <ListItemWrapper>
                 <ListItem alignItems="center" onClick={handleProfessional}>
                     <ListItemText primary="Professional" />
+                </ListItem>
+            </ListItemWrapper>
+            <ListItemWrapper>
+                <ListItem alignItems="center" onClick={handleLMS}>
+                    <ListItemText primary="LMS" />
                 </ListItem>
             </ListItemWrapper>
         </List>

@@ -34,6 +34,10 @@ const SwitchSection = () => {
         const path = location.pathname;
         if (path.includes('/dashboard')) {
             setSelectedSwitch('Dashboard');
+        } else if (path.includes('/professional')) {
+            setSelectedSwitch('Professional');
+        } else if (path.includes('/lms')) {
+            setSelectedSwitch('LMS');
         }
     }, [location]);
 

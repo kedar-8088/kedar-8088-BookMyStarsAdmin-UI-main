@@ -23,6 +23,8 @@ const SidebarSwitch = () => {
             setSelectedSwitch('Dashboard');
         } else if (path.includes('/professional')) {
             setSelectedSwitch('Professional');
+        } else if (path.includes('/lms')) {
+            setSelectedSwitch('LMS');
         }
     }, [location]);
 
@@ -39,6 +41,12 @@ const SidebarSwitch = () => {
     const handleProfessional = () => {
         setSelectedSwitch('Professional');
         navigate('/professional');
+        setOpen(false);
+    };
+
+    const handleLMS = () => {
+        setSelectedSwitch('LMS');
+        navigate('/lms');
         setOpen(false);
     };
 
@@ -171,6 +179,39 @@ const SidebarSwitch = () => {
                         }}
                     >
                         Professional
+                    </Button>
+                    <Button
+                        fullWidth
+                        variant={selectedSwitch === 'LMS' ? 'contained' : 'outlined'}
+                        startIcon={<IconLayoutGrid stroke={1.5} size="1.1rem" />}
+                        onClick={handleLMS}
+                        sx={{
+                            justifyContent: 'flex-start',
+                            textTransform: 'none',
+                            borderRadius: `${customization.borderRadius}px`,
+                            py: 0.875,
+                            px: 1.5,
+                            fontSize: '0.875rem',
+                            ...(selectedSwitch === 'LMS' && {
+                                background: 'linear-gradient(90deg, #69247C 0%, #DA498D 100%)',
+                                color: theme.palette.common.white,
+                                '&:hover': {
+                                    background: 'linear-gradient(90deg, #69247C 0%, #DA498D 100%)',
+                                    opacity: 0.9
+                                }
+                            }),
+                            ...(selectedSwitch !== 'LMS' && {
+                                borderColor: theme.palette.divider,
+                                color: theme.palette.text.primary,
+                                '&:hover': {
+                                    borderColor: '#DA498D',
+                                    backgroundColor: theme.palette.secondary.light,
+                                    color: '#DA498D'
+                                }
+                            })
+                        }}
+                    >
+                        LMS
                     </Button>
                 </Box>
             </Collapse>
