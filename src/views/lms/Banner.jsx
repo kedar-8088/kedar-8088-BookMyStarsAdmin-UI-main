@@ -16,7 +16,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css'; // Import carousel styles
 import { BaseUrl } from 'BaseUrl';
-import { fetchBanner } from 'views/API/BannerApi';
+import { fetchBanner } from 'views/professionals API/BannerApi';
 
 // assets
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
