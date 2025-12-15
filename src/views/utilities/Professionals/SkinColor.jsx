@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchSkinColors, addSkinColor, deleteSkinColor, getSkinColorById, updateSkinColor, getSkinColorCount } from 'views/API/SkinColorApi';
+import { fetchSkinColors, addSkinColor, deleteSkinColor, getSkinColorById, updateSkinColor, getSkinColorCount } from 'views/professionals API/SkinColorApi';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import {

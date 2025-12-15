@@ -16,10 +16,13 @@ const LogoSection = () => {
     const dispatch = useDispatch();
     const location = useLocation();
     const isDashboard = location.pathname.startsWith('/dashboard');
+    const isProfessional = location.pathname.startsWith('/professional');
+    const isHiringTalent = location.pathname.startsWith('/hiring-talent');
+    const shouldUseLargeLogo = isDashboard || isProfessional || isHiringTalent;
 
     return (
         <ButtonBase disableRipple onClick={() => dispatch({ type: MENU_OPEN, id: defaultId })} component={Link} to={config.defaultPath}>
-            <Logo width={isDashboard ? 120 : 70} />
+            <Logo width={shouldUseLargeLogo ? 120 : 70} />
         </ButtonBase>
     );
 };

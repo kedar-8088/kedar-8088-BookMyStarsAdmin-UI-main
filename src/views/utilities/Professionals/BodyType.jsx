@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchBodyTypes, addBodyType,deleteBodyType,getBodyTypeById,updateBodyType,searchBodyTypesByName,getBodyTypeCount} from 'views/API/BodyTypeApi';
+import { fetchBodyTypes, addBodyType,deleteBodyType,getBodyTypeById,updateBodyType,searchBodyTypesByName,getBodyTypeCount} from 'views/professionals API/BodyTypeApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect, useRef } from 'react';
 import moment from 'moment';

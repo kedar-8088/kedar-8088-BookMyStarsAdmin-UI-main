@@ -36,7 +36,7 @@ const Professional = () => {
     ];
 
     return (
-        <Box sx={{ mt: { xs: 2, sm: 3, md: 4 }, width: '100%', px: { xs: 1, sm: 2, md: 0 } }}>
+        <Box sx={{ mt: { xs: 1, sm: 1.5, md: 2 }, width: '100%', px: { xs: 1, sm: 2, md: 0 } }}>
             <Grid container spacing={{ xs: 2, sm: 3 }}>
                 <Grid item xs={12}>
                     <Banner />

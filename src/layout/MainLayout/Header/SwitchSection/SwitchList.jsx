@@ -50,6 +50,12 @@ const SwitchList = ({ setSelectedSwitch, setOpen }) => {
         setOpen(false);
     };
 
+    const handleHiringTalent = () => {
+        setSelectedSwitch('Hiring Talent');
+        navigate('/hiring-talent');
+        setOpen(false);
+    };
+
     return (
         <List
             sx={{
@@ -84,6 +90,11 @@ const SwitchList = ({ setSelectedSwitch, setOpen }) => {
             <ListItemWrapper>
                 <ListItem alignItems="center" onClick={handleLMS}>
                     <ListItemText primary="LMS" />
+                </ListItem>
+            </ListItemWrapper>
+            <ListItemWrapper>
+                <ListItem alignItems="center" onClick={handleHiringTalent}>
+                    <ListItemText primary="Hiring Talent" />
                 </ListItem>
             </ListItemWrapper>
         </List>

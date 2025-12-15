@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchShoeSizes, addShoeSize, deleteShoeSize, getShoeSizeById, updateShoeSize, getShoeSizeCount } from 'views/API/ShoeSizeApi';
+import { fetchShoeSizes, addShoeSize, deleteShoeSize, getShoeSizeById, updateShoeSize, getShoeSizeCount } from 'views/professionals API/ShoeSizeApi';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import {

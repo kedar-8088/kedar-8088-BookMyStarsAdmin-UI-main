@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchHighestQualifications, addHighestQualification, deleteHighestQualification, getHighestQualificationById, updateHighestQualification, getHighestQualificationCount } from 'views/API/HighestQualificationApi';
+import { fetchHighestQualifications, addHighestQualification, deleteHighestQualification, getHighestQualificationById, updateHighestQualification, getHighestQualificationCount } from 'views/professionals API/HighestQualificationApi';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import {

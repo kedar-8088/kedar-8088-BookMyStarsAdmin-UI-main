@@ -19,7 +19,7 @@ import {
     updateCountry,
     activateCountry,
     deactivateCountry
-} from 'views/API/CountryApi';
+} from 'views/professionals API/CountryApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect } from 'react';
 import moment from 'moment';

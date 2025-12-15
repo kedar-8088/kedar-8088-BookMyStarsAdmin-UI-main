@@ -9,6 +9,7 @@ import ResetPassword from 'views/pages/authentication3/ResetPassword';
 import ProtectedRoute from './ProtectedRoute';
 import ProfessionalRoutes from './ProfessionalRoutes';
 import LMSRoutes from './LMSRoutes';
+import HiringTalentRoutes from './HiringTalentRoutes';
 
 // Custom Error Component
 const CustomErrorElement = ({ error }) => {
@@ -150,7 +151,8 @@ const MainRoutes = {
                     ]
                 },
                 ProfessionalRoutes,
-                LMSRoutes
+                LMSRoutes,
+                HiringTalentRoutes
             ]
         }
     ]

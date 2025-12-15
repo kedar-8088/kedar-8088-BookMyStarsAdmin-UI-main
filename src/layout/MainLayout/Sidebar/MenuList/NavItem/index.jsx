@@ -71,6 +71,8 @@ const NavItem = ({ item, level }) => {
   }, [pathname]);
 
     const isMini = customization.mini;
+    const isSelected = customization.isOpen.findIndex((id) => id === item.id) > -1 || pathname === item.url;
+    const isActive = pathname === item.url;
 
     return (
         <ListItemButton
@@ -81,20 +83,38 @@ const NavItem = ({ item, level }) => {
                 mb: 0.375,
                 alignItems: 'center',
                 justifyContent: isMini ? 'center' : 'flex-start',
-                backgroundColor: level > 1 ? 'transparent !important' : 'inherit',
+                backgroundColor: isActive 
+                    ? 'rgba(105, 36, 124, 0.1)' 
+                    : level > 1 
+                        ? 'transparent !important' 
+                        : 'inherit',
                 py: level > 1 ? 0.75 : 0.875,
                 pl: isMini ? '8px' : `${level * 20}px`,
                 pr: isMini ? '8px' : '12px',
-                minHeight: 40
+                minHeight: 40,
+                color: isActive ? '#69247C' : 'inherit',
+                '&:hover': {
+                    backgroundColor: isActive 
+                        ? 'rgba(105, 36, 124, 0.15)' 
+                        : 'rgba(0, 0, 0, 0.04)'
+                },
+                '&.Mui-selected': {
+                    backgroundColor: 'rgba(105, 36, 124, 0.1) !important',
+                    color: '#69247C',
+                    '&:hover': {
+                        backgroundColor: 'rgba(105, 36, 124, 0.15) !important'
+                    }
+                }
             }}
-            selected={customization.isOpen.findIndex((id) => id === item.id) > -1}
+            selected={isSelected}
         >
             <ListItemIcon 
                 sx={{ 
                     my: 'auto', 
                     minWidth: isMini ? 0 : (!item?.icon ? 18 : 32),
                     justifyContent: 'center',
-                    mr: isMini ? 0 : 0.75
+                    mr: isMini ? 0 : 0.75,
+                    color: isActive ? '#69247C' : 'inherit'
                 }}
             >
                 {itemIcon}

@@ -7,7 +7,8 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Collapse from '@mui/material/Collapse';
-import { IconLayoutGrid, IconUsers } from '@tabler/icons-react';
+import Divider from '@mui/material/Divider';
+import { IconLayoutGrid, IconUsers, IconBriefcase } from '@tabler/icons-react';
 
 const SidebarSwitch = () => {
     const theme = useTheme();
@@ -25,6 +26,8 @@ const SidebarSwitch = () => {
             setSelectedSwitch('Professional');
         } else if (path.includes('/lms')) {
             setSelectedSwitch('LMS');
+        } else if (path.includes('/hiring-talent')) {
+            setSelectedSwitch('Hiring Talent');
         }
     }, [location]);
 
@@ -50,6 +53,12 @@ const SidebarSwitch = () => {
         setOpen(false);
     };
 
+    const handleHiringTalent = () => {
+        setSelectedSwitch('Hiring Talent');
+        navigate('/hiring-talent');
+        setOpen(false);
+    };
+
     const isMini = customization.mini;
 
     return (
@@ -66,25 +75,28 @@ const SidebarSwitch = () => {
             }}
         >
             {!isMini && (
-                <Typography
-                    variant="caption"
-                    sx={{
-                        ...theme.typography.menuCaption,
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        px: 1.5,
-                        pt: 1.5,
-                        pb: 0.75,
-                        width: '100%',
-                        textAlign: 'left'
-                    }}
-                    display="block"
-                >
-                    Switch Menu 
-                </Typography>
+                <>
+                    <Divider sx={{ width: '100%', mb: 0.75 }} />
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            ...theme.typography.menuCaption,
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            px: 1.5,
+                            pt: 1.5,
+                            pb: 0.75,
+                            width: '100%',
+                            textAlign: 'left'
+                        }}
+                        display="block"
+                    >
+                        Switch Menu 
+                    </Typography>
+                </>
             )}
             <IconButton
-                onClick={isMini ? handleDashboard : handleToggle}
+                onClick={isMini ? (selectedSwitch === 'Hiring Talent' ? handleHiringTalent : selectedSwitch === 'Professional' ? handleProfessional : handleDashboard) : handleToggle}
                 sx={{
                     width: 36,
                     height: 36,
@@ -212,6 +224,39 @@ const SidebarSwitch = () => {
                         }}
                     >
                         LMS
+                    </Button>
+                    <Button
+                        fullWidth
+                        variant={selectedSwitch === 'Hiring Talent' ? 'contained' : 'outlined'}
+                        startIcon={<IconBriefcase stroke={1.5} size="1.1rem" />}
+                        onClick={handleHiringTalent}
+                        sx={{
+                            justifyContent: 'flex-start',
+                            textTransform: 'none',
+                            borderRadius: `${customization.borderRadius}px`,
+                            py: 0.875,
+                            px: 1.5,
+                            fontSize: '0.875rem',
+                            ...(selectedSwitch === 'Hiring Talent' && {
+                                background: 'linear-gradient(90deg, #69247C 0%, #DA498D 100%)',
+                                color: theme.palette.common.white,
+                                '&:hover': {
+                                    background: 'linear-gradient(90deg, #69247C 0%, #DA498D 100%)',
+                                    opacity: 0.9
+                                }
+                            }),
+                            ...(selectedSwitch !== 'Hiring Talent' && {
+                                borderColor: theme.palette.divider,
+                                color: theme.palette.text.primary,
+                                '&:hover': {
+                                    borderColor: '#DA498D',
+                                    backgroundColor: theme.palette.secondary.light,
+                                    color: '#DA498D'
+                                }
+                            })
+                        }}
+                    >
+                        Hiring Talent
                     </Button>
                 </Box>
             </Collapse>

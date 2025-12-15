@@ -22,9 +22,9 @@
         deactivateCity,
         getAllCities,
         getActiveCities
-    } from '../../../views/API/CityApi';
-    import { getAllStates } from '../../../views/API/StateApi';
-    import { getAllCountries } from '../../../views/API/CountryApi';
+    } from '../../professionals API/CityApi';
+    import { getAllStates } from '../../professionals API/StateApi';
+    import { getAllCountries } from '../../professionals API/CountryApi';
     import { useState, useEffect } from 'react';
     import moment from 'moment';
     import {

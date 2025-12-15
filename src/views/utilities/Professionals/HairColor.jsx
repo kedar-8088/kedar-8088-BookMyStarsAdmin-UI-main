@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchHairColors, addHairColor, deleteHairColor, getHairColorById, updateHairColor, getHairColorCount } from 'views/API/HairColorApi';
+import { fetchHairColors, addHairColor, deleteHairColor, getHairColorById, updateHairColor, getHairColorCount } from 'views/professionals API/HairColorApi';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import {

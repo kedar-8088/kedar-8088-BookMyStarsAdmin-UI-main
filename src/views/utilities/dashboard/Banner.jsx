@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
-import { fetchBanner, addBanner, deleteBanner, getAdvertiseById, updatedAdvertise } from 'views/API/BannerApi';
+import { fetchBanner, addBanner, deleteBanner, getAdvertiseById, updatedAdvertise } from 'views/professionals API/BannerApi';
 import { BaseUrl } from 'BaseUrl';
 import { useState, useEffect, useRef } from 'react';
 import moment from 'moment';
