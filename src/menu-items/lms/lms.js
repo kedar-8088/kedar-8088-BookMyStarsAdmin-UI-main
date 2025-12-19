@@ -1,5 +1,5 @@
 // assets
-import { IconLayoutDashboard, IconWindmill, IconSettings } from '@tabler/icons-react';
+import { IconLayoutDashboard, IconWindmill, IconSettings, IconSchool, IconBook, IconFileText } from '@tabler/icons-react';
 
 // constant
 const icons = { IconLayoutDashboard };
@@ -38,7 +38,32 @@ const lms = {
             title: 'Masters',
             type: 'collapse',
             icon: pageIcons.IconWindmill,
-            children: []
+            children: [
+                {
+                    id: 'lms_upskill_course',
+                    title: 'Upskill Course',
+                    type: 'item',
+                    url: '/lms/upskill-course',
+                    icon: IconSchool,
+                    breadcrumbs: false
+                },
+                {
+                    id: 'lms_upskill_module',
+                    title: 'Upskill Module',
+                    type: 'item',
+                    url: '/lms/upskill-module',
+                    icon: IconBook,
+                    breadcrumbs: false
+                },
+                {
+                    id: 'lms_upskill_topic',
+                    title: 'Upskill Topic',
+                    type: 'item',
+                    url: '/lms/upskill-topic',
+                    icon: IconFileText,
+                    breadcrumbs: false
+                }
+            ]
         },
         {
             id: 'lms_settings',

@@ -85,6 +85,9 @@ const CustomErrorElement = ({ error }) => {
 const LMSDefault = Loadable(lazy(() => import('views/lms')));
 const LMSMasters = Loadable(lazy(() => import('views/lms/Masters')));
 const LMSSettings = Loadable(lazy(() => import('views/lms/Settings')));
+const UpskillCourse = Loadable(lazy(() => import('views/lms/pages/UpskillCourse')));
+const UpskillModule = Loadable(lazy(() => import('views/lms/pages/UpskillModule')));
+const UpskillTopic = Loadable(lazy(() => import('views/lms/pages/UpskillTopic')));
 
 const LMSRoutes = {
     path: 'lms',
@@ -92,6 +95,9 @@ const LMSRoutes = {
     children: [
         { path: '', element: <LMSDefault />, errorElement: <CustomErrorElement /> },
         { path: 'masters', element: <LMSMasters />, errorElement: <CustomErrorElement /> },
+        { path: 'upskill-course', element: <UpskillCourse />, errorElement: <CustomErrorElement /> },
+        { path: 'upskill-module', element: <UpskillModule />, errorElement: <CustomErrorElement /> },
+        { path: 'upskill-topic', element: <UpskillTopic />, errorElement: <CustomErrorElement /> },
         { path: 'settings', element: <LMSSettings />, errorElement: <CustomErrorElement /> }
         // Add more LMS routes here as needed
     ]
